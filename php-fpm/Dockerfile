@@ -1,7 +1,7 @@
 FROM php:7.4-fpm
 
 RUN apt-get update && apt-get install -y zlib1g-dev libpng-dev g++ git libicu-dev zip libzip-dev zip libpq-dev \
-    && docker-php-ext-install zip intl opcache pdo pgsql pdo_pgsql gd sockets bcmath \
+    && docker-php-ext-install zip intl opcache pdo pdo_mysql gd sockets bcmath \
     && pecl install apcu \
     && docker-php-ext-configure zip \
     && docker-php-ext-enable apcu

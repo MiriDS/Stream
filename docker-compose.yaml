@@ -28,14 +28,15 @@ services:
         image: mariadb:10.8.2
         restart: always
         environment:
-            MYSQL_DATABASE: wpdb
-            MYSQL_USER: root
-            MYSQL_PASSWORD: pass
-            MYSQL_RANDOM_ROOT_PASSWORD: pass
+            MARIADB_USER: root
+            MARIADB_PASSWORD: pass
+            MARIADB_ROOT_PASSWORD: pass
         volumes:
             - data_db:/var/lib/mysql
         ports:
             - "3306:3306"
+        depends_on:
+            - nginx
 
 volumes:
     data_db: {}
