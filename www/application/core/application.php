@@ -17,6 +17,15 @@ class Application
      */
     public function __construct()
     {
+        // Authentication check
+        if(!isset($_SESSION['auth']) || $_SESSION['auth'] !== 1)
+        {
+            require APP . 'controller/auth.php';
+            $page = new Auth();
+            $page->index();
+            return;
+        }
+
         // create array with URL parts in $url
         $this->splitUrl();
 

@@ -36,12 +36,6 @@ class Controller
         // @see http://net.tutsplus.com/tutorials/php/why-you-should-be-using-phps-pdo-for-database-access/
         try {
             $this->db = new PDO(DB_TYPE . ':host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET, DB_USER, DB_PASS, $options);
-            #$host = 'mariadb';
-            #$dbname = 'stream';
-            #$user = 'root';
-            #$pass = 'pass';
-
-            #$this->db = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
         }
         catch(PDOException $e) {
             echo $e->getMessage();

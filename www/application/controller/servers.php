@@ -4,14 +4,12 @@
  * Class Home
  *
  */
-class Users extends Controller
+class Servers extends Controller
 {
     public function index()
     {
-        $users = $this->model->getUsers();
-
         require APP . 'view/_templates/header.php';
-        require APP . 'view/users/index.php';
+        require APP . 'view/servers/index.php';
         require APP . 'view/_templates/footer.php';
     }
 }

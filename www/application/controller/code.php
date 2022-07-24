@@ -4,7 +4,6 @@ class Code extends Controller
 {
     /**
      * PAGE: index
-     * This method handles what happens when you move to http://yourproject/category/index
      */
     public function index()
     {
@@ -23,17 +22,17 @@ class Code extends Controller
 
     public function auth()
     {
-        if(isset($_POST['username']) && is_string($_POST['username']) && strlen($_POST['username'])!="" && isset($_POST['password']) && is_string($_POST['password']) && strlen($_POST['password'])!="")//>=8)
+        if(isset($_POST['username']) && is_string($_POST['username']) && strlen($_POST['username'])!="" && isset($_POST['password']) && is_string($_POST['password']) && strlen($_POST['password'])!=""))
         {
             $loginState = $this->model->checkPassword($_POST['username'], $_POST['password']);
 
             if($loginState == 'success')
             {
-                header('Location:'.URL.'code');
+                header('Location:'.URL);
             }
             else if($loginState == 'error')
             {
-                header('Location:'.URL.'code');
+                header('Location:'.URL);
             }
             else
             {

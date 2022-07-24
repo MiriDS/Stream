@@ -1,5 +1,5 @@
 <?php
-require APP . "libs/pagination.php";
+#require APP . "libs/pagination.php";
 
 class Model
 {
@@ -77,37 +77,12 @@ class Model
 
         return $info;
     }
-
-    public function getLang()
-    {
-        $lang = false;
-        if(isset($_SESSION['lang_code']) && is_string($_SESSION['lang_code']) && $_SESSION['lang_code']!="")
-        {
-            $lang = $_SESSION['lang_code'];
-        }
-
-        if($lang==false)
-        {
-            $sql = "SELECT * FROM `languages` where `default` = 1";
-            $query = $this->db->prepare($sql);
-            $query->execute();
-            $lang = $query->fetch();
-
-            $_SESSION['lang_code'] = $lang->language;
-            $lang = $lang->language;
-        }
-
-        return $lang;
-    }
-
     
-    //  FRONT POSTs
-    public function getPostsMain()
+    public function getUsers()
     {
-        $sql = "SELECT * FROM `posts` WHERE main = :main AND lang = :lang ORDER BY id DESC LIMIT 6";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':main' => 1, ':lang' => $this->getLang());
-        $query->execute($parameters);
+        $sql = "SELECT * FROM `admins`";
+        $query = $this->db->prepare($sql);        
+        $query->execute();
 
         return $query->fetchAll();
     }
