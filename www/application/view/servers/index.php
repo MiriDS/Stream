@@ -60,12 +60,8 @@
                 <div class="modal-body">
                     <form>
                         <div class="mb-3">
-                            <label for="recipient-name" class="form-label">Recipient:</label>
-                            <input type="text" class="form-control" id="recipient-name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="message-text" class="form-label">Message:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
+                            <label for="ipaddress" class="form-label">IP address:</label>
+                            <input type="text" class="form-control" id="ipaddress" data-inputmask-alias="***.***.***.***" />
                         </div>
                     </form>
                 </div>
@@ -76,3 +72,18 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function($) {
+        'use strict';
+
+        // initializing inputmask
+        $(":input").inputmask();
+
+        })(jQuery);
+    </script>
+
+
+    <!-- Plugin js for this page -->
+	<script src="<?php echo URL; ?>vendors/inputmask/jquery.inputmask.min.js"></script>
+	<!-- End plugin js for this page -->

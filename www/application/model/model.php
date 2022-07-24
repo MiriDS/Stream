@@ -81,10 +81,31 @@ class Model
     public function getUsers()
     {
         $sql = "SELECT * FROM `admins`";
-        $query = $this->db->prepare($sql);        
+        $query = $this->db->prepare($sql);
         $query->execute();
 
         return $query->fetchAll();
+    }
+
+    public function addUser($name, $username, $password)
+    {
+        $check = $this->db->prepare("SELECT * FROM `admins` WHERE username='$username'");
+        $check->execute();
+        $exist = $check->fetchAll();
+
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
+        }
+
+        $sql = "INSERT INTO `admins` (username, password, name) VALUES (:username, :password, :name)";
+        $query = $this->db->prepare($sql);
+        $params = array(':username' => $username, ':name' => $this->sanitize($name), ':password' => $this->convertPassword($password));
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
     }
 
     public function getPostsModule()
@@ -930,21 +951,20 @@ class Model
     /**
     * For cleaning everything
     */
+    public function convertPassword($password)
+    {
+        $salt = $this->generateRandomString();
+        return md5($password . md5($salt));
+    }
+
     public function clean($s)
     {
         return str_replace("'", "''", $s);
     }
 
     public function sanitize($input)
-    {
-        if (get_magic_quotes_gpc())
-        {
-            $input = stripslashes($input);
-        }
-        //$input  = cleanInput($input);
-        $output = htmlspecialchars(($input));
-
-        return $output;
+    {        
+        return htmlspecialchars(($input));
     }
 
     /* takes the input, scrubs bad characters */

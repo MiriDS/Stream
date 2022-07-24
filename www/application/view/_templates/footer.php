@@ -9,10 +9,6 @@
 			</div>
 		</div>
 
-		<!-- core:js -->
-		<script src="<?php echo URL; ?>vendors/core/core.js"></script>
-		<!-- endinject -->
-
 		<!-- Plugin js for this page -->
 		<script src="<?php echo URL; ?>vendors/chartjs/Chart.min.js"></script>
 		<script src="<?php echo URL; ?>vendors/jquery.flot/jquery.flot.js"></script>

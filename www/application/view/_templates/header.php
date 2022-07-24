@@ -32,7 +32,11 @@
 	<link rel="stylesheet" href="<?php echo URL; ?>css/style.css">
 	<!-- End layout styles -->
 
-  <link rel="shortcut icon" href="<?php echo URL; ?>images/favicon.png" />
+	<!-- core:js -->
+	<script src="<?php echo URL; ?>vendors/core/core.js"></script>
+	<!-- endinject -->
+
+	<link rel="shortcut icon" href="<?php echo URL; ?>images/favicon.png" />
 </head>
 <body class="sidebar-dark">
 	<div class="main-wrapper">
