@@ -70,7 +70,7 @@
 				</li>
 				<li class="nav-item">
 					<a href="<?php echo URL; ?>servers" class="nav-link">
-						<i class="link-icon" data-feather="hard-drive"></i>
+						<i class="link-icon" data-feather="server"></i>
 						<span class="link-title">Servers</span>
 					</a>
 				</li>
@@ -87,21 +87,30 @@
 					</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" data-bs-toggle="collapse" href="#emails" role="button" aria-expanded="false" aria-controls="emails">
-						<i class="link-icon" data-feather="mail"></i>
-						<span class="link-title">Email</span>
+					<a href="<?php echo URL; ?>scheduler" class="nav-link">
+						<i class="link-icon" data-feather="list"></i>
+						<span class="link-title">Scheduler</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href="<?php echo URL; ?>history" class="nav-link">
+						<i class="link-icon" data-feather="calendar"></i>
+						<span class="link-title">History</span>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" data-bs-toggle="collapse" href="#settings" role="button" aria-expanded="false" aria-controls="settings">
+						<i class="link-icon" data-feather="settings"></i>
+						<span class="link-title">Settings</span>
 						<i class="link-arrow" data-feather="chevron-down"></i>
 					</a>
-					<div class="collapse" id="emails">
+					<div class="collapse" id="settings">
 						<ul class="nav sub-menu">
 							<li class="nav-item">
-								<a href="pages/email/inbox.html" class="nav-link">Inbox</a>
+								<a href="<?php echo URL; ?>graphic_presets" class="nav-link">Graphic presets</a>
 							</li>
 							<li class="nav-item">
-								<a href="pages/email/read.html" class="nav-link">Read</a>
-							</li>
-							<li class="nav-item">
-								<a href="pages/email/compose.html" class="nav-link">Compose</a>
+								<a href="<?php echo URL; ?>text_presets" class="nav-link">Text presets</a>
 							</li>
 						</ul>
 					</div>
