@@ -32,7 +32,7 @@
                                     foreach ($users as $user) {                                        
                                         print '<tr>
                                             <td>'.$count++.'</td>
-                                            <td>'.$user->name.'</td>
+                                            <td>'.htmlspecialchars($user->name).'</td>
                                             <td>'.$user->username.'</td>
                                         </tr>';
                                     }

@@ -40,3 +40,15 @@ INSERT INTO `admins` (`id`, `username`, `password`, `salt`, `name`) VALUES (6, '
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for servers
+-- ----------------------------
+DROP TABLE IF EXISTS servers;
+CREATE TABLE servers (
+                         id int(11) NOT NULL AUTO_INCREMENT,
+                         ip_address varchar(15) DEFAULT NULL,
+                         created_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+                         is_deleted smallint(6) DEFAULT 0,
+                         PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

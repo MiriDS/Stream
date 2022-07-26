@@ -87,6 +87,17 @@ class Model
         return $query->fetchAll();
     }
 
+    public function getServers()
+    {
+        $sql = "SELECT * FROM `servers` WHERE is_deleted=0";
+        $query = $this->db->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll();
+    }
+
+
+
     public function addUser($name, $username, $password)
     {
         $check = $this->db->prepare("SELECT * FROM `admins` WHERE username='$username'");
@@ -107,6 +118,40 @@ class Model
             print 'success';
         }
     }
+
+    public function addServer($ip)
+    {
+        $check = $this->db->prepare("SELECT * FROM `servers` WHERE ip_address='$ip' AND is_deleted=0");
+        $check->execute();
+        $exist = $check->fetchAll();
+
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
+        }
+
+        $sql = "INSERT INTO `servers` (ip_address) VALUES (:ip)";
+        $query = $this->db->prepare($sql);
+        $params = array(':ip' => $ip);
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
+    }
+
+    public function removeServer($id)
+    {
+        $sql = "UPDATE `servers` SET is_deleted=1 WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $params = array(':id' => $id);
+        $query->execute($params);
+        if ($query) {
+            print 'success';
+        }
+    }
+
+
 
     public function getPostsModule()
     {
