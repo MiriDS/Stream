@@ -29,9 +29,9 @@ class Servers extends Controller
     {
         if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
         {
-            if(isset($_POST['id']) && is_string($_POST['id']) && $_POST['id'] !== '')
+            if(isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id'] > 0)
             {
-                $result = $this->model->removeServer($_POST['id']);
+                $result = $this->model->removeServer((int)$_POST['id']);
             }
         }
     }

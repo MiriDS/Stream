@@ -139,7 +139,6 @@ class Model
             print 'success';
         }
     }
-
     public function removeServer($id)
     {
         $sql = "UPDATE `servers` SET is_deleted=1 WHERE id=:id";
@@ -150,6 +149,138 @@ class Model
             print 'success';
         }
     }
+
+    public function addGraphicPreset()
+    {
+        $id = isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id']>0 ? (int)$_POST['id']: 0;
+        $name = $_POST['name'];
+        $passes = (int)$_POST['passes'];
+        $pause = (int)$_POST['pause'];
+        $font_color = $_POST['font_color'];
+        $background_color = $_POST['background_color'];
+        $margin = (int)$_POST['margin'];
+        $font_size = (int)$_POST['font_size'];
+        $padding = (int)$_POST['padding'];
+        $speed = (int)$_POST['speed'];
+
+
+        $check = $this->db->prepare("SELECT * FROM `graphic_presets` WHERE name=:name AND is_deleted=0 AND id!=:id");
+        $check->execute(['name' => $name, 'id' => $id]);
+        $exist = $check->fetchAll();
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
+        }
+
+        $params = array(
+            'name' => $name,
+            'passes' => $passes,
+            'pause' => $pause,
+            'font_color' => $font_color,
+            'background_color' => $background_color,
+            'margin' => $margin,
+            'font_size' => $font_size,
+            'padding' => $padding,
+            'speed' => $speed,
+        );
+
+        if($id) {
+            $sql = "UPDATE `graphic_presets` SET name=:name,passes_count=:passes,pause_between_passes=:pause,font_color=:font_color,background_color=:background_color,bottom_margin=:margin, font_size=:font_size, text_padding=:padding, text_speed=:speed WHERE id=:id";
+            $params['id'] = $id;
+        }
+        else {
+            $sql = "INSERT INTO `graphic_presets` (name,passes_count,pause_between_passes,font_color,background_color,bottom_margin, font_size, text_padding, text_speed) VALUES (:name,:passes,:pause,:font_color,:background_color,:margin, :font_size, :padding, :speed)";
+        }
+
+        $query = $this->db->prepare($sql);
+
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
+    }
+
+    public function getGraphicPresets($id = 0)
+    {
+        $sql = "SELECT * FROM `graphic_presets` WHERE is_deleted=0 ".($id ? " AND id=$id" : "") ;
+        $query = $this->db->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function removeGraphicPreset($id)
+    {
+        $sql = "UPDATE `graphic_presets` SET is_deleted=1 WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $params = array(':id' => $id);
+        $query->execute($params);
+        if ($query) {
+            print 'success';
+        }
+    }
+
+
+    public function addTextPreset()
+    {
+        $id = isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id']>0 ? (int)$_POST['id']: 0;
+        $name = $_POST['name'];
+        $text = $_POST['text'];
+
+
+        $check = $this->db->prepare("SELECT * FROM `text_presets` WHERE name=:name AND is_deleted=0 AND id!=:id");
+        $check->execute(['name' => $name, 'id' => $id]);
+        $exist = $check->fetchAll();
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
+        }
+
+        $params = array(
+            'name' => $name,
+            'text' => $text
+        );
+
+        if($id) {
+            $sql = "UPDATE `text_presets` SET name=:name,text=:text WHERE id=:id";
+            $params['id'] = $id;
+        }
+        else {
+            $sql = "INSERT INTO `text_presets` (name,text) VALUES (:name,:text)";
+        }
+
+        $query = $this->db->prepare($sql);
+
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
+    }
+
+    public function getTextPresets($id = 0)
+    {
+        $sql = "SELECT * FROM `text_presets` WHERE is_deleted=0 ".($id ? " AND id=$id" : "") ;
+        $query = $this->db->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function removeTextPreset($id)
+    {
+        $sql = "UPDATE `text_presets` SET is_deleted=1 WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $params = array(':id' => $id);
+        $query->execute($params);
+        if ($query) {
+            print 'success';
+        }
+    }
+
+
+
+
+
 
 
 

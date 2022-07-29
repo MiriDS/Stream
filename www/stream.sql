@@ -52,3 +52,39 @@ CREATE TABLE servers (
                          is_deleted smallint(6) DEFAULT 0,
                          PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- ----------------------------
+-- Table structure for graphic_presets
+-- ----------------------------
+DROP TABLE IF EXISTS graphic_presets;
+CREATE TABLE graphic_presets (
+                                 id int(11) NOT NULL AUTO_INCREMENT,
+                                 name varchar(255) DEFAULT NULL,
+                                 passes_count int(11) DEFAULT 0,
+                                 pause_between_passes int(11) DEFAULT NULL,
+                                 font_color varchar(10) DEFAULT NULL,
+                                 background_color varchar(10) DEFAULT NULL,
+                                 bottom_margin smallint(6) DEFAULT NULL,
+                                 font_size smallint(6) DEFAULT NULL,
+                                 text_padding smallint(6) DEFAULT NULL,
+                                 text_speed smallint(6) DEFAULT NULL,
+                                 created_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+                                 is_deleted smallint(6) DEFAULT 0,
+                                 PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+-- ----------------------------
+-- Table structure for text_presets
+-- ----------------------------
+DROP TABLE IF EXISTS text_presets;
+CREATE TABLE text_presets (
+                              id int(11) NOT NULL AUTO_INCREMENT,
+                              name varchar(255) DEFAULT NULL,
+                              text text CHARACTER SET utf8mb3 DEFAULT NULL,
+                              created_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+                              is_deleted smallint(6) DEFAULT 0,
+                              PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
