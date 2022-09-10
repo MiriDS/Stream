@@ -1,9 +1,6 @@
 <?php
 
-/**
- * Class Home
- *
- */
+
 class Servers extends Controller
 {
     public function index()

@@ -1,7 +1,30 @@
 <?php
-
+use GuzzleHttp\Client;
 class Helper
 {
+    static public function graphqlRequest($ip, $query) {
+
+        try {
+            $response = (new Client)->request('post', "$ip/stream-processor/api/graphql", [
+                'request.options' => array(
+                    'exceptions' => false,
+                ),
+                'auth' => [
+                    'admin',
+                    'netup123'
+                ],
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'body' => $query
+            ]);
+
+            return $response->getBody();
+
+        } catch (Exception $e) {
+            return false;
+        }
+    }
     /**
      * debugPDO
      *

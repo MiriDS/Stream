@@ -1,6 +1,5 @@
 <?php
 #require APP . "libs/pagination.php";
-
 class Model
 {
     /**
@@ -89,11 +88,78 @@ class Model
 
     public function getServers()
     {
-        $sql = "SELECT * FROM `servers` WHERE is_deleted=0";
+        $graphQLquery = '{"query":"query {version}"}';
+        $sql = " SELECT * FROM `servers` WHERE is_deleted=0 ";
         $query = $this->db->prepare($sql);
         $query->execute();
+        $servers = $query->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($servers AS $keyy => $data) {
+            $serverIp = $data['ip_address'];
+            $status = 0;
+            $info = "-";
 
-        return $query->fetchAll();
+            $data = Helper::graphqlRequest($serverIp, $graphQLquery);
+            if($data) {
+                $info = json_decode($data,true);
+                $info = $info['data']['version'];
+                $status = 1;
+            }
+
+            $servers[$keyy]['status'] = $status;
+            $servers[$keyy]['info'] = $info;
+
+            //echo ($response->getBody());
+        }
+
+        return $servers;
+    }
+
+    public function getChannels()
+    {
+        $sql = " SELECT * FROM `channels` WHERE is_deleted=0 ";
+        $query = $this->db->prepare($sql);
+        $query->execute();
+        $channels = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        return $channels;
+    }
+
+    public function setChannelList()
+    {
+        $sql = "UPDATE `channels` SET is_deleted=1";
+        $query = $this->db->prepare($sql);
+        $query->execute();
+        $graphQLquery = '{"query":"query {nodes (role: PROCESSING) {id  type  alias  role   state  disabled  }}"}';
+        $sql = " SELECT * FROM `servers` WHERE is_deleted=0 ";
+        $query = $this->db->prepare($sql);
+        $query->execute();
+        $servers = $query->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($servers AS $keyy => $data) {
+            $serverIp = $data['ip_address'];
+            $status = 0;
+
+            $data = Helper::graphqlRequest($serverIp, $graphQLquery);
+
+            if($data) {
+                $data = (json_decode($data,true));
+                $nodes = ($data['data']['nodes']);
+                foreach ($nodes as $node) {
+                    $sql = "INSERT INTO `channels` (id_from_api, type, alias, state, disabled, server_ip) VALUES (:id_from_ip, :type, :alias, :state, :disabled, :server_ip)";
+                    $query = $this->db->prepare($sql);
+                    $params = array(
+                        ':id_from_ip' => $this->sanitize($node['id'])
+                        ,':type' => $this->sanitize($node['type'])
+                        ,':alias' => $this->sanitize($node['alias'])
+                        ,':state' => $this->sanitize($node['state'])
+                        ,':disabled' => (int)($node['disabled'])
+                        ,':server_ip' => $this->sanitize($serverIp)
+                    );
+                    $query->execute($params);
+                }
+            }
+        }
+
+        return $servers;
     }
 
 

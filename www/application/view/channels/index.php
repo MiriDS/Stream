@@ -5,7 +5,7 @@
             <h4 class="mb-3 mb-md-0">Channels</h4>
         </div>
         <div class="d-flex align-items-center flex-wrap text-nowrap">            
-            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+            <button type="button" class="btn refresh-list btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
                 <i class="btn-icon-prepend" data-feather="refresh-ccw"></i>
                 Refresh
             </button>
@@ -27,12 +27,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Some channel name</td>
-                                    <td>127.0.0.1</td>
-                                    <td>Server information</td>
-                                </tr>                      
+                            <?php
+                                $count = 1;
+                                foreach ($channels as $channel) {
+                                    print '<tr sid="'.(int)$channel['id'].'">
+                                                <td>'.$count++.'</td>
+                                                <td>'.htmlspecialchars($channel["alias"]).'</td>
+                                                <td>'.htmlspecialchars($channel["server_ip"]).'</td>
+                                                <td>'.htmlspecialchars($channel["state"]).'</td>
+                                            </tr>';
+                                }
+                            ?>
                             </tbody>
                         </table>
                     </div>
@@ -40,3 +45,22 @@
             </div>
         </div>
     </div> <!-- row -->
+
+    <script>
+        $('.refresh-list').on('click', function() {
+            var data = new FormData();
+            $.ajax(
+                {
+                    url: '<?php echo URL;?>channels/refresh',
+                    data: data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    type: 'POST'
+                })
+                .done(function(result)
+                {
+                    location.reload();
+                });
+        });
+    </script>

@@ -35,11 +35,11 @@
                             <?php
                             $count = 1;
                             foreach ($servers as $server) {
-                                print '<tr sid="'.(int)$server->id.'">
+                                print '<tr sid="'.(int)$server['id'].'">
                                             <td>'.$count++.'</td>
-                                            <td>'.htmlspecialchars($server->ip_address).'</td>
-                                            <td><span class="badge bg-success">Online</span></td>
-                                            <td>Server information</td>
+                                            <td>'.htmlspecialchars($server["ip_address"]).'</td>
+                                            <td>'.($server["status"]==1? '<span class="badge bg-success">Online</span>' : '<span class="badge bg-danger">Offline</span>').'</td>
+                                            <td>'.htmlspecialchars($server["info"]).'</td>
                                             <td>
                                                 <button type="button" class="delete btn btn-danger btn-xs">Delete</button>
                                             </td>
