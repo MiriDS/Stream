@@ -6,6 +6,7 @@ class Helper
 
         try {
             $response = (new Client)->request('post', "$ip/stream-processor/api/graphql", [
+                'timeout' => 2,
                 'request.options' => array(
                     'exceptions' => false,
                 ),

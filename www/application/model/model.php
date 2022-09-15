@@ -101,8 +101,10 @@ class Model
             $data = Helper::graphqlRequest($serverIp, $graphQLquery);
             if($data) {
                 $info = json_decode($data,true);
-                $info = $info['data']['version'];
-                $status = 1;
+                if(isset($info['data'])) {
+                    $info = $info['data']['version'];
+                    $status = 1;
+                }
             }
 
             $servers[$keyy]['status'] = $status;
@@ -119,6 +121,16 @@ class Model
         $sql = " SELECT * FROM `channels` WHERE is_deleted=0 ";
         $query = $this->db->prepare($sql);
         $query->execute();
+        $channels = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        return $channels;
+    }
+
+    public function getFreeChannels($ch_group_id)
+    {
+        $sql = " SELECT *,(SELECT ch_group_id FROM ch_groups_channels WHERE is_deleted=0 AND channel_id=tb1.id LIMIT 1 )ch_group_id FROM `channels` tb1 WHERE id NOT IN (SELECT channel_id FROM ch_groups_channels WHERE is_deleted=0 AND ch_group_id!=:ch_group_id) AND  is_deleted=0 ";
+        $query = $this->db->prepare($sql);
+        $query->execute(['ch_group_id' => $ch_group_id]);
         $channels = $query->fetchAll(PDO::FETCH_ASSOC);
 
         return $channels;
@@ -345,231 +357,92 @@ class Model
 
 
 
-
-
-
-
-
-    public function getPostsModule()
-    {
-        $perPage = 15;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $sql = "SELECT * FROM `posts` WHERE main = :main order by id desc LIMIT $perPage OFFSET $firstTop";
-        
-        $query = $this->db->prepare($sql);
-        $parameters = array(':main' => 1);
-        $query->execute($parameters);
-        return $query->fetchAll();
-    }
-
-    public function getPostInfoByCpuSite($cpu)
-    {
-        $sql = "SELECT * FROM `posts` WHERE cpu = :cpu AND lang = :lang";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':cpu' => $this->clean($cpu), ':lang' => $this->getLang());
-        $query->execute($parameters);
-
-        return $query->fetch();
-    }
-
-    public function getOtherPosts($cpu = null)
-    {
-
-        $sql = "SELECT * FROM `posts` WHERE main = :main AND lang = :lang AND cpu != :cpu order by id desc LIMIT 5";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':main' => 1, ':cpu' => $this->clean($cpu), ':lang' => $this->getLang());
-        $query->execute($parameters);
-
-        return $query->fetchAll();
-    }
-
-    // Front Audio
-    public function getAudiosModule()
-    {
-        $perPage = 12;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $where = (isset($_GET['word']) && is_string($_GET['word']) && $_GET['word']!='')? 'name LIKE "%'.$_GET['word'].'%"' : '1=1';
-
-        $where .= (isset($_GET['cat']) && is_numeric($_GET['cat']) && $_GET['cat']>0)? ' AND cat = "'. (int)$_GET['cat'].'"' : '';
-
-        $sql = "SELECT * FROM `audio` WHERE $where order by id desc LIMIT $perPage OFFSET $firstTop";
-        $query = $this->db->prepare($sql);
+    public function getChannelsGroups() {
+        $query = $this->db->prepare("SELECT *,(SELECT COUNT(0) FROM ch_groups_channels WHERE ch_group_id=tb1.id AND is_deleted=0)channel_count FROM `ch_groups` tb1 WHERE is_deleted=0");
         $query->execute();
-        $audios = $query->fetchAll();
 
-        $return = array();
-        foreach ($audios as $audio)
-        {
-            $sql = "SELECT * FROM `audiocats` WHERE id = :id";
-            $query = $this->db->prepare($sql);
-            $parameters = array(':id' => $audio->cat);
-            $query->execute($parameters);
-            $audiocat = $query->fetch();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function addChannelGroup($id, $name, $ch_list)
+    {
+        $check = $this->db->prepare("SELECT * FROM `ch_groups` WHERE name=? AND id!=? AND is_deleted=0");
+        $check->execute([$name, $id]);
+        $exist = $check->fetchAll(PDO::FETCH_ASSOC);
 
-            array_push($return, array($audio->id, $audio->cat, $audio->name, $audio->audio, $audiocat->name));
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
         }
 
-        return $return;
-    }
-
-    public function getAudioCatsWithCount()
-    {
-        $sql = "SELECT * FROM `audiocats`";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        $cats = $query->fetchAll();
-        $return = array();
-
-        foreach ($cats as $cat)
-        {
-            $sql = "SELECT COUNT(0) as cnt FROM `audio` WHERE cat = :cat";
-            $query = $this->db->prepare($sql);
-            $parameters = array(':cat' => $cat->id);
-            $query->execute($parameters);
-            $audiosincat = $query->fetch();
-
-            array_push($return, array($cat->id, $cat->name, $audiosincat->cnt));
-        }
-
-        return $return;
-    }
-
-    public function getAudioName($code)
-    {
-        $sql = "SELECT name, cat FROM `audio` WHERE audio = :audio";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':audio' => $code);
-        $query->execute($parameters);
-        $audio = $query->fetch();
-
-        if(isset($audio->name) && $audio->name != '')
-        {
-            $catSql = "SELECT name FROM `audiocats` WHERE id = :cat";
-            $query = $this->db->prepare($catSql);
-            $parameters = array(':cat' => $audio->cat);
-            $query->execute($parameters);
-            $cats = $query->fetch();
-
-            if(isset($cats->name) && $cats->name != '')
-            {
-                return $this->azReplace($audio->name.'('.$cats->name.')');
+        /*
+         * Channel checker
+         * */
+        foreach ($ch_list AS $ch_id) {
+            if(! (is_numeric($ch_id) && (int)$ch_id>0)) {
+                exit('channel error');
+            }
+            $ch_id = (int)$ch_id;
+            $check = $this->db->prepare("SELECT * FROM `ch_groups_channels` WHERE ch_group_id!=? AND channel_id=? AND is_deleted=0");
+            $check->execute([$id, $ch_id]);
+            $exist = $check->fetch(PDO::FETCH_ASSOC);
+            if($exist) {
+                exit('wrong channel');
             }
         }
-    }
 
-    public function getVideoCatsWithCount()
-    {
-        $sql = "SELECT * FROM `videocats`";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        $cats = $query->fetchAll();
-        $return = array();
-
-        foreach ($cats as $cat)
-        {
-            $sql = "SELECT COUNT(0) as cnt FROM `videos` WHERE cat = :cat";
+        if(!$id) {
+            $sql = "INSERT INTO `ch_groups` (name) VALUES (?)";
             $query = $this->db->prepare($sql);
-            $parameters = array(':cat' => $cat->id);
-            $query->execute($parameters);
-            $videosincat = $query->fetch();
+            $params = array($name);
+            $query->execute($params);
 
-            array_push($return, array($cat->id, $cat->name, $videosincat->cnt));
+            $check = $this->db->prepare("SELECT * FROM `ch_groups` ORDER BY id DESC LIMIT 1");
+            $check->execute();
+            $chGroup = $check->fetch(PDO::FETCH_ASSOC);
+            $id = $chGroup['id'];
+        }
+        else {
+            $sql = "UPDATE `ch_groups` SET name=? WHERE id=?";
+            $query = $this->db->prepare($sql);
+            $params = array($name,$id);
+            $query->execute($params);
         }
 
-        return $return;
-    }
 
-    // Front Gallery
-    public function getGalleryModule()
-    {
-        $perPage = 20;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
+        $check = $this->db->prepare("UPDATE `ch_groups_channels` SET is_deleted=1 WHERE ch_group_id=?");
+        $check->execute([$id]);
 
-        $sql = "SELECT * FROM `gallery` order by id desc LIMIT $perPage OFFSET $firstTop";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        return $query->fetchAll();
-    }
-
-    // Front Main Videos
-    public function getVideosMain()
-    {
-        $sql = "SELECT * FROM `videos` WHERE lang = :lang ORDER BY id DESC LIMIT 8";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':lang' => $this->getLang());
-        $query->execute($parameters);
-
-        return $query->fetchAll();
-    }
-
-    public function getVideosModule()
-    {
-        $perPage = 12;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $where = (isset($_GET['word']) && is_string($_GET['word']) && $_GET['word']!='')? 'name LIKE "%'.$_GET['word'].'%"' : '1=1';
-
-        $where .= (isset($_GET['cat']) && is_numeric($_GET['cat']) && $_GET['cat']>0)? ' AND cat = "'. (int)$_GET['cat'].'"' : '';
-
-        $sql = "SELECT * FROM `videos` WHERE $where order by id desc LIMIT $perPage OFFSET $firstTop";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        $videos = $query->fetchAll();
-
-        $return = array();
-        foreach ($videos as $video)
-        {
-            $sql = "SELECT * FROM `videocats` WHERE id = :id";
+        foreach ($ch_list AS $ch_id) {
+            $ch_id = (int)$ch_id;
+            $sql = "INSERT INTO `ch_groups_channels` (ch_group_id,channel_id) VALUES (?,?)";
             $query = $this->db->prepare($sql);
-            $parameters = array(':id' => $video->cat);
-            $query->execute($parameters);
-            $videocat = $query->fetch();
-
-            array_push($return, array($video->id, $video->cat, $video->name, $video->content, $video->image, $videocat->name));
+            $params = array($id,$ch_id);
+            $query->execute($params);
         }
 
-        return $return;
+        if ($id) {
+            print 'success';
+        }
     }
 
-    // Front Questions
-
-    public function getQuestionsModule()
+    public function removeChannelGroup($id)
     {
-        $perPage = 20;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $where = (isset($_GET['word']) && is_string($_GET['word']) && $_GET['word']!='')? 'tb1.question LIKE "%'. $this->clean($_GET['word']) .'%" OR tb2.question LIKE "%'. $this->clean($_GET['word']) .'%" AND' : '1=1 AND';
-
-        $sql = "SELECT tb1.name, tb1.question, tb1.added, tb2.question AS answer, tb2.added AS timer FROM `questions` tb1 INNER JOIN `questions` tb2 ON tb1.id = tb2.question_id WHERE $where tb1.answered = :answered order by tb1.id DESC LIMIT $perPage OFFSET $firstTop";
-        
+        $sql = "UPDATE `ch_groups` SET is_deleted=1 WHERE id=:id";
         $query = $this->db->prepare($sql);
-        $parameters = array(':answered' => 1);
-        $query->execute($parameters);
+        $params = array(':id' => $id);
+        $query->execute($params);
 
-        return $query->fetchAll();
+        $sql = "UPDATE `ch_groups_channels` SET is_deleted=1 WHERE ch_group_id=:id";
+        $query = $this->db->prepare($sql);
+        $params = array(':id' => $id);
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
     }
 
-    public function setQuestion($name, $email, $subject, $question)
-    {
-        $sql_en = "INSERT INTO `questions` (name, email, subject, question) VALUES (:name, :email, :subject, :question)";
-        $query = $this->db->prepare($sql_en);
-        $parameters_en = array(':name' => $this->clean($name), ':email' => $this->clean($email), ':subject' => $this->clean($subject), ':question' => $this->clean($question));
-        $query->execute($parameters_en);
 
-        print json_encode(array('status' => true));
-    }
 
 
     //  ####  ####  ###   ####
