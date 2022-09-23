@@ -80,15 +80,19 @@
                             <div class="col-6 mb-3">
                                 <div id="cp1" class="input-group mb-2" title="Using input value">
                                     <label for="pause" class="form-label">Font Color:</label>
-									<input type="text" class="form-control" name="font_color" />
-                                    <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                                    <div style="display:flex;">                                    
+									    <input type="text" class="form-control" name="font_color" />
+                                        <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                                    </div>
 								</div>
                             </div>
                             <div class="col-6 mb-3">
                                 <div id="cp2" class="input-group mb-2" title="Using input value">
-                                <label for="pause" class="form-label">Background color:</label>
-									<input type="text" class="form-control"  name="background_color"  />
-                                    <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                                    <label for="pause" class="form-label">Background color:</label>
+                                    <div style="display:flex;">                                    
+									    <input type="text" class="form-control"  name="background_color"  />
+                                        <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                                    </div>
 								</div>
                             </div>
                             <div class="col-6 mb-3">

@@ -20,7 +20,9 @@
 	<!-- endinject -->
 
 	<!-- Plugin css for this page -->
+	<link rel="stylesheet" href="<?php echo URL; ?>vendors/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css">
 	<link rel="stylesheet" href="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
+	<link rel="stylesheet" href="<?php echo URL; ?>vendors/font-awesome/css/font-awesome.min.css">
 	<!-- End plugin css for this page -->
 
 	<!-- inject:css -->
