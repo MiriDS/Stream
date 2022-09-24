@@ -8,9 +8,43 @@ class Scheduler extends Controller
 {
     public function index()
     {
+        $textPresets = $this->model->getTextPresets();
+        $graphicPresets = $this->model->getGraphicPresets();
+        $chGroups = $this->model->getChannelsGroups();
+
+
         require APP . 'view/_templates/header.php';
         require APP . 'view/scheduler/index.php';
         require APP . 'view/_templates/footer.php';
+    }
+
+    public function add()
+    {
+        if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
+        {
+            if(
+                isset($_POST['name']) && is_string($_POST['name']) && trim($_POST['name']) !== ''
+                && isset($_POST['text_preset']) && is_numeric($_POST['text_preset']) && (int)$_POST['text_preset']>0
+                && isset($_POST['graphic_preset']) && is_numeric($_POST['graphic_preset']) && (int)$_POST['graphic_preset']>0
+                && isset($_POST['group']) && is_numeric($_POST['group']) && (int)$_POST['group']>0
+                && isset($_POST['start_time']) && is_string($_POST['start_time']) && trim($_POST['start_time']) !== ''
+            )
+            {
+                $result = $this->model->addScheduleTask();
+            }
+        }
+    }
+    public function status()
+    {
+        if (isset($_SESSION['auth']) && $_SESSION['auth'] == 1) {
+            if(isset($_POST['sid']) && is_numeric($_POST['sid']) && (int)$_POST['sid']>0
+            && isset($_POST['status']) && is_numeric($_POST['status']) && in_array($_POST['status'],[1,2,3])) {
+
+                $sid = (int)$_POST['sid'];
+                $status = (int)$_POST['status'];
+                $this->model->setScheduleStatus($sid, $status);
+            }
+        }
     }
 }
 

@@ -346,7 +346,7 @@ class Model
     }
     public function removeTextPreset($id)
     {
-        $sql = "UPDATE `text_presets` SET is_deleted=1 WHERE id=:id";
+//        $sql = "UPDATE `text_presets` SET is_deleted=1 WHERE id=:id";
         $query = $this->db->prepare($sql);
         $params = array(':id' => $id);
         $query->execute($params);
@@ -443,6 +443,115 @@ class Model
     }
 
 
+    public function getScheduler() {
+        $query = $this->db->prepare("SELECT
+    tb1.id,
+    tb1.name,
+    tb1.status,
+    tb1.start_time,
+    tb1.end_time,
+    tb2.name text_preset_name,
+    (LENGTH(tb2.text)/tb3.text_speed * 60) duration,
+    tb2.name AS graphic_preset_name,
+    (SELECT name FROM ch_groups tb4 WHERE tb4.id=tb1.group)group_name
+FROM scheduler tb1
+    LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
+    LEFT JOIN graphic_presets tb3 ON tb3.id=tb1.graphic_preset
+WHERE tb1.is_deleted=0 AND status!=3");
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getScheduledTaskStatus($task) {
+        /*
+         * 0 - Created
+         * 1 - Running
+         * 2 - Suspended
+         * 3 - Canceled
+         *
+         * 4 - Pending
+         * 5 - Finished
+
+         * */
+
+        if($task['status'] == 1) {
+            if(!empty($task['end_time']) && strtotime($task['end_time']) < time()) {
+                $task['status'] = 5;
+            }
+            else if(strtotime($task['start_time']) > time()) {
+                $task['status'] = 4;
+            }
+        }
+
+        return $task['status'];
+    }
+
+    public function setScheduleStatus($id, $status) {
+        $check = $this->db->prepare("SELECT * FROM `scheduler` WHERE is_deleted=0 AND id=:id");
+        $check->execute(['id' => $id]);
+        $exist = $check->fetch(PDO::FETCH_ASSOC);
+        if (!($exist)) {
+            print 'problem';
+            return;
+        }
+        $sql = "UPDATE `scheduler` SET status=:status WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $query->execute(['status' => $status, 'id' => $id]);
+        if ($query) {
+            print 'success';
+        }
+    }
+    public function addScheduleTask()
+    {
+        $id = isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id']>0 ? (int)$_POST['id']: 0;
+        $name = $_POST['name'];
+        $group = (int)$_POST['group'];
+        $text_preset = (int)$_POST['text_preset'];
+        $graphic_preset = (int)$_POST['graphic_preset'];
+        //$duration = (int)$_POST['duration'];
+        $start_time = @date('Y-m-d H:i',strtotime($_POST['start_time']));
+        $end_time = isset($_POST['end_time']) && is_string($_POST['end_time']) && trim($_POST['end_time']) !== '' ?
+            @date('Y-m-d H:i',strtotime($_POST['end_time'])) : NULL;
+        $period = isset($_POST['period']) && is_numeric($_POST['period']) && (int)$_POST['period']>=5 ? (int)$_POST['period']: 0;
+
+
+        $check = $this->db->prepare("SELECT * FROM `scheduler` WHERE name=:name AND is_deleted=0 AND id!=:id");
+        $check->execute(['name' => $name, 'id' => $id]);
+        $exist = $check->fetchAll(PDO::FETCH_ASSOC);
+        if (count($exist) > 0) {
+            print 'exist';
+            return;
+        }
+
+        $params = array(
+            'name' => $name,
+            'group' => $group,
+            'text_preset' => $text_preset,
+            'graphic_preset' => $graphic_preset,
+            'period' => $period,
+            'start_time' => $start_time,
+            'end_time' => $end_time
+        );
+
+        if($id && false) {
+            $sql = "UPDATE `scheduler` SET name=:name,passes_count=:passes,pause_between_passes=:pause,font_color=:font_color,background_color=:background_color,bottom_margin=:margin, font_size=:font_size, text_padding=:padding, text_speed=:speed WHERE id=:id";
+            $params['id'] = $id;
+        }
+        else {
+            $sql = "INSERT INTO `scheduler` (name,`group`,`text_preset`,`graphic_preset`, `period`, `start_time`, `end_time`) VALUES (:name,:group,:text_preset,:graphic_preset,:period ,:start_time ,:end_time)";
+        }
+
+        $query = $this->db->prepare($sql);
+
+        $query->execute($params);
+
+        if ($query) {
+            print 'success';
+        }
+    }
+
+
 
 
     //  ####  ####  ###   ####
@@ -485,435 +594,6 @@ class Model
         unset($_SESSION['name']);
     }
 
-    // Dashboard COunts
-    public function getCountsDashboard()
-    {
-        $allCount = array();
-        $sql = "SELECT COUNT(0) as posts, (SELECT COUNT(0) FROM `videos` WHERE lang = :lang) as videos, (SELECT COUNT(0) FROM `gallery`) as gallery, (SELECT COUNT(0) FROM `audio`) as audios, (SELECT COUNT(0) FROM `questions`) as questions FROM `posts` WHERE lang = :lang";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':lang' => 'en');
-        $query->execute($parameters);
-
-        $cnt = $query->fetch();
-
-        $allCount['posts'] = $cnt->posts;
-        $allCount['videos'] = $cnt->videos;
-        $allCount['audios'] = $cnt->audios;
-        $allCount['gallery'] = $cnt->gallery;
-        $allCount['questions'] = $cnt->questions;
-
-        return $allCount;
-    }
-
-    // Posts in code
-    public function getPostsCount()
-    {
-        $sql = "SELECT COUNT(0) as count FROM `posts` WHERE lang = :lang";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':lang' => 'en');
-        $query->execute($parameters);
-
-        return $query->fetch();
-    }
-
-    public function getPosts()
-    {
-        $perPage = 20;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $sql = "SELECT * FROM `posts` order by id desc LIMIT $perPage OFFSET $firstTop";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        $services = array();
-        $query = $query->fetchAll();
-
-        foreach ($query as $service)
-        {
-            if(!isset($services[$service->cpu]))
-            {
-                $services[$service->cpu] = array();
-            }
-
-            array_push($services[$service->cpu], array($service->id, $service->name, $service->content, $service->image, $service->cpu, $service->lang, $service->main));
-        }
-
-        return json_encode($services);
-    }
-
-    public function getPostInfoByCpu($cpu)
-    {
-        $sql = "SELECT * FROM `posts` WHERE cpu = :cpu";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':cpu' => $this->clean($cpu));
-        $query->execute($parameters);
-        $postInfo = array();
-        $query = $query->fetchAll();
-
-        foreach ($query as $post)
-        {
-            if(!isset($postInfo[$post->lang]))
-            {
-                $postInfo[$post->lang] = array();
-            }
-
-            $postInfo[$post->lang] = array($post->id, $post->name, $post->content, $post->full_review, $post->image, $post->thumb, $post->cpu, $post->lang);
-        }
-
-        return json_encode($postInfo);
-    }
-
-    public function addPost($name_en, $description_en, $full_review_en, $image_en)
-    {
-
-        if(isset($image_en) && $image_en != '')
-        {        
-            $image_en = $this->file_uploader('image', $image_en, 'uploads/posts/');
-
-            if(!$image_en['status'])
-            {
-                die;
-            }
-
-            $image_en = $image_en['name'];
-        }
-        else
-        {
-            $image_en = '947282e8d6509a2f91b755030ab49557.jpg';
-        }
-
-        $cpu = $this->generate_seo_link($this->sanitize($name_en), '-', true);
-
-        $sql_en = "INSERT INTO `posts` (cpu, name, content, full_review, image, lang) VALUES (:cpu, :name, :content, :full_review, :image, :lang)";
-        $query = $this->db->prepare($sql_en);
-        $parameters_en = array(':cpu' => $cpu, ':name' => $this->sanitize($name_en), ':content' => $this->sanitize($description_en), ':full_review' => $this->sanitize($full_review_en), ':image' => $image_en, ':lang' => 'en');
-        $query->execute($parameters_en);
-
-        print 'success';
-    }
-
-    public function updatePost($cpu, $name_en, $description_en, $full_review_en, $image_en)
-    {
-        $sql = "SELECT name, image, thumb, lang FROM `posts` WHERE cpu = :cpu";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':cpu' => $cpu);
-        $query->execute($parameters);
-        $imageNames = $query->fetchAll();
-
-        $postInfo = array();
-        foreach ($imageNames as $post)
-        {        
-            $postInfo[$post->lang] = array($post->name, $post->image, $post->thumb);
-        }
-
-        // image-en
-
-        if(!empty($image_en['name']))
-        {
-            $image_en_upl = $this->file_uploader('image', $image_en, 'uploads/posts/');
-            $image_en = $image_en_upl['name'];
-            if(isset($postInfo['en'][1]) && $postInfo['en'][1]!='')
-                unlink('uploads/posts/'.$postInfo['en'][1]);
-        }
-        else
-        {
-            $image_en = $postInfo['en'][1];
-        }
-
-
-        // cpu
-
-        if(isset($postInfo['en'][0]) && $postInfo['en'][0]!=$name_en)
-        {
-            $cpu_n = $this->generate_seo_link($this->clean($name_en), '-', true);
-        }
-        else
-        {
-            $cpu_n = $cpu;
-        }
-
-        $sql_en = "UPDATE `posts` SET cpu = :cpu_n, name = :name, content = :content, full_review = :full_review, image = :image WHERE cpu = :cpu AND lang = :lang";
-        $query = $this->db->prepare($sql_en);
-        $parameters_en = array(':cpu_n' => $this->sanitize($cpu_n), ':name' => $this->sanitize($name_en), ':content' => $this->sanitize($description_en), ':full_review' => $this->sanitize($full_review_en), ':image' => $image_en, ':cpu' => $cpu, ':lang' => 'en');
-        $query->execute($parameters_en);
-
-        print 'success';
-    }
-
-    public function deletePost($cpu)
-    {
-        $unst = "SELECT * FROM `posts` WHERE cpu = :cpu";
-        $qry = $this->db->prepare($unst);
-        $parameters = array(':cpu' => $this->clean($cpu));
-        $qry->execute($parameters);
-        $img_icon = $qry->fetchAll();
-
-        foreach ($img_icon as $val)
-        {
-            //if(is_file('uploads/posts/'.$val->image))
-            //{
-            //    unlink('uploads/posts/'.$val->image);
-            //}
-        }
-
-        $sql = "DELETE FROM `posts` WHERE cpu = :cpu";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':cpu' => $this->clean($cpu));
-        $query->execute($parameters);
-
-        if($query)
-            print 'success';
-    }
-
-    public function postOnMain($stat, $cpu)
-    {
-        $sql = "UPDATE `posts` SET main = :main WHERE cpu = :cpu";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':main' => (int)$stat, ':cpu' => $this->clean($cpu));
-        $query->execute($parameters);
-
-        if($query)
-            print 'success';
-    }
-
-        
-
-    //  Videos in code
-    public function getVideoCats()
-    {
-        $sql = "SELECT id, name FROM `videocats`";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-
-        return $query->fetchAll();
-    }
-
-    public function getVideosCount()
-    {
-        $sql = "SELECT COUNT(0) as count FROM `videos`";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-
-        return $query->fetch();
-    }
-
-    public function getVideos()
-    {
-        $perPage = 12;
-        $page = isset($_GET['page']) && $_GET['page']>0 ? (int)$_GET['page'] : 1;
-        $firstTop = ($page-1)*$perPage;
-        $lastTop = $page*$perPage;
-
-        $where = (isset($_GET['word']) && is_string($_GET['word']) && $_GET['word']!='')? 'name LIKE "%'.$_GET['word'].'%"' : '1=1';
-
-        $where .= (isset($_GET['cat']) && is_numeric($_GET['cat']) && $_GET['cat']>0)? ' AND cat = "'. (int)$_GET['cat'].'"' : '';
-
-        $sql = "SELECT * FROM `videos` WHERE $where order by id desc LIMIT $perPage OFFSET $firstTop";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-        $videos = $query->fetchAll();
-
-        $return = array();
-        foreach ($videos as $video)
-        {
-            $sql = "SELECT * FROM `videocats` WHERE id = :id";
-            $query = $this->db->prepare($sql);
-            $parameters = array(':id' => $video->cat);
-            $query->execute($parameters);
-            $videocat = $query->fetch();
-
-            array_push($return, array($video->id, $video->cat, $video->name, $video->content, $video->image, $videocat->name));
-        }
-
-        return $return;
-    }
-
-    public function getVideoInfoById($id)
-    {
-        $sql = "SELECT tb1.*, tb2.name as catName FROM `videos` tb1 INNER JOIN `videocats` tb2 ON tb1.cat = tb2.id WHERE tb1.id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => (int)$id);
-        $query->execute($parameters);
-
-        return $query->fetch();
-    }
-
-    public function addVideo($cat, $link, $name, $image)
-    {
-        if(isset($image) && $image!='')
-        {
-            $img = $this->file_uploader('image', $image, 'uploads/videos/');
-            $image = $img['name'];
-        }
-        else
-        {
-            $image = '';
-            $thumb = '';
-        }
-
-        $sql_en = "INSERT INTO `videos` (name, content, image, cat, lang) VALUES (:name, :content, :image, :cat, :lang)";
-        $query = $this->db->prepare($sql_en);
-        $parameters = array(':name' => $name, ':content' => $link, ':image' => $image, ':cat' => $cat, ':lang' => 'en');
-        $query->execute($parameters);
-    
-        print 'success';
-        
-    }
-
-    public function editVideo($cat, $link, $name, $image, $id)
-    {
-        //if(isset($image) && $image!='')
-        //{
-        //    $img = $this->file_uploader('image', $image, 'uploads/videos/');
-        //    $image = $img['name'];
-        //}
-        //else
-        //{
-        //    $image = '';
-        //}
-
-        $sql_en = "UPDATE `videos` SET name = :name, content = :content, cat = :cat WHERE id = :id";
-        $query = $this->db->prepare($sql_en);
-        $parameters = array(':name' => $name, ':content' => $link, ':cat' => $cat, ':id' => $id,);
-        $query->execute($parameters);
-    
-        print 'success';
-        
-    }
-
-    public function deleteVideo($id)
-    {
-        $unst = "SELECT * FROM `videos` WHERE id = :id AND lang = :lang";
-        $qry = $this->db->prepare($unst);
-        $parameters = array(':id' => (int)$id, ':lang' => 'en');
-        $qry->execute($parameters);
-        $media = $qry->fetch();
-
-        if($media->image != '')
-            unlink('uploads/videos/'. $media->image);
-
-        $sql = "DELETE FROM `videos` WHERE id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => $id);
-        $query->execute($parameters);
-
-        if($query)
-            print 'success';
-    }
-
-    // Questions in code
-    public function getQuestions()
-    {
-        $sql = "SELECT * FROM `questions` WHERE question_id = :zero ORDER BY id DESC";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':zero' => 0);
-        $query->execute($parameters);
-
-        return $query->fetchAll();
-    }
-
-    public function getQuestionsById($id)
-    {
-        $sql = "SELECT * FROM `questions` WHERE id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => (int)$id);
-        $query->execute($parameters);
-
-        return $query->fetch();
-    }
-
-    public function getQuestionsAsnwerById($id)
-    {
-        $sql = "SELECT tb1.id, tb1.name, tb1.question, tb1.subject, tb1.email, tb1.added, tb2.question AS answer, tb2.added AS timer FROM `questions` tb1 INNER JOIN `questions` tb2 ON tb1.id = tb2.question_id WHERE tb1.id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => (int)$id);
-        $query->execute($parameters);
-
-        return $query->fetch();
-    }
-
-    public function questionAnswer($id, $answer)
-    {
-        $sql_ans = "INSERT INTO `questions` (name, question, question_id) VALUES (:name, :question, :question_id)";
-        $query_ans = $this->db->prepare($sql_ans);
-        $parameters = array(':name' => 'Ağarəşid Talıbov', ':question' => $this->clean($answer), ':question_id' => $id);
-        $query_ans->execute($parameters);
-
-        $sql = "UPDATE `questions` SET answered = :one WHERE id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':one' => 1, ':id' => (int)$id);
-        $query->execute($parameters);
-    
-        print 'success';
-    }
-
-    public function questionAnswerEdit($id, $answer)
-    {
-        $sql_ans = "UPDATE `questions` SET question = :question WHERE question_id = :id";
-        $query_ans = $this->db->prepare($sql_ans);
-        $parameters = array(':question' => $this->clean($answer), ':id' => $id);
-        $query_ans->execute($parameters);
-    
-        print 'success';
-    }
-
-    public function deleteQuestion($id)
-    {        
-        $sql = "DELETE FROM `questions` WHERE id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => (int)$id);
-        $query->execute($parameters);
-
-        if($query)
-            print 'success';
-    }
-
-    //  Gallery in code
-    public function getGallery()
-    {
-        $sql = "SELECT * FROM `gallery` ORDER BY id ASC";
-        $query = $this->db->prepare($sql);
-        $query->execute();
-
-        return $query->fetchAll();
-    }
-
-    public function addGallery($image)
-    {
-        $type = 'image';
-        $img = $this->file_uploader('image', $image, 'uploads/gallery/', 400);
-
-        $image = $img['name'];
-        $thumb = $img['thumb'];
-
-        $sql_en = "INSERT INTO `gallery` (image, thumb) VALUES (:image, :thumb)";
-        $query = $this->db->prepare($sql_en);
-        $parameters = array(':image' => $image, ':thumb' => $thumb);
-        $query->execute($parameters);
-    
-        print 'success';
-    }
-
-    public function deleteGallery($id)
-    {
-        $unst = "SELECT * FROM `gallery` WHERE id = :id";
-        $qry = $this->db->prepare($unst);
-        $parameters = array(':id' => (int)$id);
-        $qry->execute($parameters);
-        $gallery = $qry->fetch();
-        
-        unlink('uploads/gallery/'.$gallery->image);
-        unlink('uploads/gallery/'.$gallery->thumb);
-
-        $sql = "DELETE FROM `gallery` WHERE id = :id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':id' => (int)$id);
-        $query->execute($parameters);
-
-        if($query)
-            print 'success';
-    }
 
     // Pages in code
     public function getModules()

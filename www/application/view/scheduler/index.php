@@ -5,13 +5,9 @@
             <h4 class="mb-3 mb-md-0">Scheduler</h4>
         </div>
         <div class="d-flex align-items-center flex-wrap text-nowrap">
-            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
-                <i class="btn-icon-prepend" data-feather="refresh-ccw"></i>
-                Refresh
-            </button>
-            <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0" data-bs-toggle="modal" data-bs-target="#addServersModal">
+            <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0" data-bs-toggle="modal" data-bs-target="#addScheduleTaskModal">
                 <i class="btn-icon-prepend" data-feather="plus"></i>
-                Add new server
+                Add new task
             </button>
         </div>
     </div>
@@ -36,17 +32,48 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>127.0.0.1</td>
-                                    <td>127.0.0.1</td>
-                                    <td>127.0.0.1</td>
-                                    <td>127.0.0.1</td>
-                                    <td>127.0.0.1</td>
-                                    <td><span class="badge bg-success">Online</span></td>
-                                    <td><span class="badge bg-success">Online</span></td>
-                                    <td>View logs</td>                                    
-                                </tr>
+                            <?php
+                                $scheduler = $this->model->getScheduler();
+                                $count = 1;
+                                foreach ($scheduler as $item) {
+                                    $status = $this->model->getScheduledTaskStatus($item);
+                                    $actionBtn = '';
+                                    $statusBtn = '';
+                                    if($status == 0) {
+                                        $actionBtn = '<a status="1" class="change-status btn btn-success btn-xs"> Run </a>';
+                                        $statusBtn = '<span class="badge bg-success">Created</span></td>';
+                                    }
+                                    if($status == 1) {
+                                        $actionBtn .= '<a status="2" class="change-status btn btn-warning btn-xs" style="color: white"> Pause </a>';
+                                        $statusBtn = '<span class="badge bg-info">Running</span></td>';
+                                    }
+                                    if($status == 2) {
+                                        $actionBtn .= '<a status="1" class="change-status btn btn-success btn-xs" style="color: white"> Resume </a>';
+                                        $statusBtn = '<span class="badge bg-black">Suspended</span></td>';
+                                    }
+                                    if($status == 4) {
+                                        $statusBtn = '<span class="badge bg-warning">Pending</span></td>';
+                                    }
+                                    if($status == 5) {
+                                        $statusBtn = '<span class="badge bg-danger">Finished</span></td>';
+                                    }
+
+                                    $actionBtn .= '<a status="3" style="margin-left:5px" class="change-status btn btn-danger btn-xs" style="color: white"> Cancel </a>';
+
+                                    print '
+                                        <tr sid="'.(int)$item['id'].'" >
+                                            <td>'.$count++.'</td>
+                                            <td>'.htmlspecialchars($item['name']).'</td>
+                                            <td>'.htmlspecialchars($item['text_preset_name']).'</td>
+                                            <td>'.htmlspecialchars($item['graphic_preset_name']).'</td>
+                                            <td>'.htmlspecialchars($item['group_name']).'</td>
+                                            <td>'.(int)($item['duration']).'</td>
+                                            <td>'.$statusBtn.'</td>
+                                            <td>'.$actionBtn.'</td>
+                                            <td>View logs</td>
+                                        </tr>';
+                                }
+                            ?>
                             </tbody>
                         </table>
                     </div>
@@ -56,7 +83,7 @@
     </div> <!-- row -->
 
     <!-- Modal -->
-    <div class="modal fade" id="addServersModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="addScheduleTaskModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -73,41 +100,44 @@
                             </div>
                             <div class="col-6 mb-3">
                                 <label for="text_preset" class="form-label">Text preset:</label>
-                                <select class="form-select" id="text_preset">
+                                <select class="form-select" id="text_preset" name="text_preset">
                                     <option selected>Select text preset</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                    <?php
+                                        foreach ($textPresets as $textPreset) {
+                                            print '<option value="'.(int)$textPreset['id'].'">'.htmlspecialchars($textPreset['name']).'</option>';
+                                        }
+                                    ?>
                                 </select>
                             </div>
                             <div class="col-6 mb-3">
                                 <label for="graphic_preset" class="form-label">Graphic preset:</label>
-                                <select class="form-select" id="graphic_preset">
+                                <select class="form-select" id="graphic_preset" name="graphic_preset">
                                     <option selected>Select graphic preset</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                    <?php
+                                        foreach ($graphicPresets as $graphicPreset) {
+                                            print '<option value="'.(int)$graphicPreset['id'].'">'.htmlspecialchars($graphicPreset['name']).'</option>';
+                                        }
+                                    ?>
                                 </select>
                             </div>                            
                             <div class="col-6 mb-3">
                                 <label for="group" class="form-label">Group:</label>
-                                <select class="form-select" id="group">
+                                <select class="form-select" id="group" name="group">
                                     <option selected>Select channel group</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                    <?php
+                                        foreach ($chGroups as $chGroup) {
+                                            print '<option value="'.(int)$chGroup['id'].'">'.htmlspecialchars($chGroup['name']).'</option>';
+                                        }
+                                    ?>
                                 </select>
                             </div>
-                            <div class="col-6 mb-3">
-                                <label for="duration" class="form-label">Duration:</label>
-                                <input type="text" class="form-control" id="duration" name="duration" placeholder="milliseconds" />
-                            </div>
+
                             <div class="col-4 mb-3">
                                 <label for="start_time" class="form-label">Start time:</label>
                                 <!-- <input type="text" class="form-control" id="start_time" name="start_time" /> -->
                                 <div class="form-group">
                                     <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
-                                        <input type="text" class="form-control datetimepicker-input datetimepicker1" data-target="#datetimepicker1"/>
+                                        <input type="text" name="start_time" class="form-control datetimepicker-input datetimepicker1" data-target="#datetimepicker1"/>
                                         <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
                                             <div class="input-group-text" style="height:38px;"><i class="fa fa-calendar"></i></div>
                                         </div>
@@ -125,7 +155,7 @@
                                 <!-- <input type="text" class="form-control" id="end_time" name="end_time" /> -->
                                 <div class="form-group">
                                     <div class="input-group date" id="datetimepicker2" data-target-input="nearest">
-                                        <input type="text" class="form-control datetimepicker-input datetimepicker2" data-target="#datetimepicker2"/>
+                                        <input type="text" name="end_time" class="form-control datetimepicker-input datetimepicker2" data-target="#datetimepicker2"/>
                                         <div class="input-group-append" data-target="#datetimepicker2" data-toggle="datetimepicker">
                                             <div class="input-group-text" style="height:38px;"><i class="fa fa-calendar"></i></div>
                                         </div>
@@ -153,7 +183,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="addGraphicPreset">
+                    <button type="button" class="btn btn-primary" id="addScheduleTask">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         Save
                     </button>
@@ -185,9 +215,9 @@
             $('#start_time_check').on('change', function (e) {
                 if (e.target.checked)
                 {
-                    $('.datetimepicker1').val(moment().format('DD.MM.YYYY HH:mm')).attr('disabled', true);                    
+                    $('.datetimepicker1').val(moment().format('DD.MM.YYYY HH:mm'));//.attr('disabled', true);
                 } else {
-                    $('.datetimepicker1').val('').attr('disabled', false);
+                    $('.datetimepicker1').val('');
                 }
             })
 
@@ -210,4 +240,61 @@
             })
 
         });
+
+        $('.change-status').on('click', function() {
+            var sid = $(this).closest('tr').attr('sid');
+            var status = $(this).attr('status');
+            var data = {sid,status};
+            $.post('<?php echo URL;?>scheduler/status',data, (res) => {
+                if(res == 'success'){
+                    location.reload();
+                }
+            })
+        })
+        $('#addScheduleTask').on('click', function() {
+            var data = objectifyForm($('#graphic_preset_modal').serializeArray());
+            if(data['name']=='') {
+                alert('Name is required');
+                return;
+            }
+            if((data['text_preset']>0)==false) {
+                alert('Text preset is required');
+                return;
+            }
+            if((data['graphic_preset']>0)==false) {
+                alert('Graphic preset is required');
+                return;
+            }
+            if((data['group']>0)==false) {
+                alert('Group is required');
+                return;
+            }
+
+           /* if(data['duration']=='') {
+                alert('Duration is required');
+                return;
+            }*/
+
+            if(data['start_time']=='') {
+                alert('Start time is required');
+                return;
+            }
+
+            if(data['period']>0 && data['period']<5) {
+                alert('Minimal value for period is 5 ');
+                return;
+            }
+
+
+
+            $.post('<?php echo URL;?>scheduler/add',data, (res) => {
+                if(res == 'success'){
+                    location.reload();
+                }
+                if(res == 'exist'){
+                    alert('Already exist')
+                }
+            })
+
+        })
     </script>
