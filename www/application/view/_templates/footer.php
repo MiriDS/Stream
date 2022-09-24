@@ -15,6 +15,9 @@
 		<script src="<?php echo URL; ?>vendors/jquery.flot/jquery.flot.resize.js"></script>
 		<script src="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 		<script src="<?php echo URL; ?>vendors/apexcharts/apexcharts.min.js"></script>
+		<script src="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+		<script src="<?php echo URL; ?>vendors/moment/moment.min.js"></script>
+		<script src="<?php echo URL; ?>vendors/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.js"></script>
 		<!-- End plugin js for this page -->
 
 		<!-- inject:js -->
@@ -24,7 +27,6 @@
 
 		<!-- Custom js for this page -->
 		<script src="<?php echo URL; ?>js/dashboard-light.js"></script>
-		<script src="<?php echo URL; ?>js/datepicker.js"></script>
 		<!-- End custom js for this page -->
 
 	</body>
