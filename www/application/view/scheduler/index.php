@@ -11,7 +11,9 @@
             </button>
         </div>
     </div>
-
+    <?php
+        $repeat = isset($_POST['repeat']) && is_numeric($_POST['repeat']) && (int)$_POST['repeat']>0 ? (int)$_POST['repeat'] : 0;
+    ?>
     <div class="row">
         <div class="col-12 stretch-card">
             <div class="card">
@@ -33,7 +35,7 @@
                             </thead>
                             <tbody>
                             <?php
-                                $scheduler = $this->model->getScheduler();
+                                $scheduler = $this->model->getScheduler(1);
                                 $count = 1;
                                 foreach ($scheduler as $item) {
                                     $status = $this->model->getScheduledTaskStatus($item);
@@ -91,7 +93,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="btn-close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="graphic_preset_modal">
+                    <form id="scheduler_modal_form">
                         <input type="hidden" name="id" value="0" />
                         <div class="row">
                             <div class="col-12 mb-3">
@@ -196,6 +198,7 @@
         $(function() {
         'use strict';
 
+
             $('#datetimepicker1').datetimepicker({
                 locale: 'ru',
                 format: 'DD.MM.YYYY HH:mm'
@@ -238,8 +241,34 @@
                     $('#period').val('').attr('disabled', false);
                 }
             })
-
         });
+        var repeat = <?php print "$repeat";?>
+
+        if(repeat>0) {
+            $.post('<?php echo URL;?>scheduler/get',{id: repeat}, (res) => {
+                res = JSON.parse(res)
+                if(res.status=='ok') {
+                    //resetModal();
+
+                    setTimeout(function () {
+                        var data = res.data;
+                        for(var n in data) {
+                            if(n=='id') {
+                                continue;
+                            }
+                            var value = data[n];
+                            /*if(typeof diffKeys[n] != 'undefined') {
+                                n = diffKeys[n];
+                            }*/
+                            $('#scheduler_modal_form').find('[name="'+n+'"]').val(value);
+                        }
+                        $('#addScheduleTaskModal').modal('show')
+                    },500)
+
+
+                }
+            })
+        }
 
         $('.change-status').on('click', function() {
             var sid = $(this).closest('tr').attr('sid');
@@ -247,12 +276,12 @@
             var data = {sid,status};
             $.post('<?php echo URL;?>scheduler/status',data, (res) => {
                 if(res == 'success'){
-                    location.reload();
+                    location.href='/scheduler';
                 }
             })
         })
         $('#addScheduleTask').on('click', function() {
-            var data = objectifyForm($('#graphic_preset_modal').serializeArray());
+            var data = objectifyForm($('#scheduler_modal_form').serializeArray());
             if(data['name']=='') {
                 alert('Name is required');
                 return;
@@ -289,7 +318,7 @@
 
             $.post('<?php echo URL;?>scheduler/add',data, (res) => {
                 if(res == 'success'){
-                    location.reload();
+                    location.href='/scheduler';
                 }
                 if(res == 'exist'){
                     alert('Already exist')

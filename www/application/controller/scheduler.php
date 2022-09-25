@@ -46,5 +46,25 @@ class Scheduler extends Controller
             }
         }
     }
+
+    public function get()
+    {
+
+        if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
+        {
+            if(isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id'] > 0)
+            {
+                $result = $this->model->getScheduler(0, (int)$_POST['id']);
+                if(count($result)) {
+                    $result = $result[0];
+                    //$result['name'] = htmlspecialchars($result['name']);
+                    //$result['background_color'] = htmlspecialchars($result['background_color']);
+                    //$result['font_color'] = htmlspecialchars($result['font_color']);
+                }
+
+                print json_encode(['status'=> 'ok', 'data' => $result],true);
+            }
+        }
+    }
 }
 

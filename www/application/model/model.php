@@ -443,9 +443,24 @@ class Model
     }
 
 
-    public function getScheduler() {
+    public function getScheduler($type = 0, $id = 0) {
+
+        $filter = "";
+        if($type==1) {
+            $filter = "AND (tb1.status!=3 AND (tb1.end_time IS NULL OR tb1.end_time>CURRENT_TIMESTAMP()))";
+        }
+        else if($type==2) {
+            $filter = "AND (tb1.status=3 OR (tb1.end_time IS NOT NULL AND tb1.end_time<CURRENT_TIMESTAMP()))";
+        }
+
+        if($id) {
+            $filter.= "AND tb1.id='$id'";
+        }
         $query = $this->db->prepare("SELECT
     tb1.id,
+    tb1.text_preset,
+    tb1.graphic_preset,
+    tb1.group,
     tb1.name,
     tb1.status,
     tb1.start_time,
@@ -457,7 +472,7 @@ class Model
 FROM scheduler tb1
     LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
     LEFT JOIN graphic_presets tb3 ON tb3.id=tb1.graphic_preset
-WHERE tb1.is_deleted=0 AND status!=3");
+WHERE tb1.is_deleted=0 $filter");
         $query->execute();
 
         return $query->fetchAll(PDO::FETCH_ASSOC);
