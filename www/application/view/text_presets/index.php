@@ -97,45 +97,41 @@
         }
         (function($) {
             'use strict';
-            /*var diffKeys = {
-                'text_padding': 'padding',
-                'text_speed': 'speed',
-                'bottom_margin': 'margin',
-                'passes_count': 'passes',
-                'pause_between_passes': 'pause'
-            }*/
-
 
             $('.edit').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
-                $.post('<?php echo URL;?>text_presets/get',{id: sid}, (res) => {
+                $.post('<?php echo URL;?>text_presets/get',{id: sid}, (res) =>
+                {
                     res = JSON.parse(res)
-                    if(res.status=='ok') {
+                    if(res.status === 'ok')
+                    {
                         resetModal();
                         var data = res.data;
                         for(var n in data) {
                             var value = data[n];
-                            /*if(typeof diffKeys[n] != 'undefined') {
-                                n = diffKeys[n];
-                            }*/
                             $('#text_preset_modal').find('[name="'+n+'"]').val(value);
                         }
-                        /*setTimeout(function (){
-                            $('[name="font_color"]').trigger('change');
-                            $('[name="background_color"]').trigger('change');
-                        },500)*/
                         $('#addTextPresetModal').modal('show')
-
                     }
                 })
             });
+
             $('.delete').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
 
-                if (confirm("Silmek isteyinizde eminsiniz?") == true) {
-                    var data = new FormData();
-                    data.append('id', sid);
-                    $.ajax(
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6571ff',
+                    cancelButtonColor: '#ff3366',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var data = new FormData();
+                        data.append('id', sid);
+                        $.ajax(
                         {
                             url: '<?php echo URL;?>text_presets/remove',
                             data: data,
@@ -148,25 +144,58 @@
                         {
                             if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Text preset has been deleted.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })
                             }
-                        });
-                }
+                        });                        
+                    }
+                })
             });
 
             $('#addTextPreset').on('click', function() {
                 var data = objectifyForm($('#text_preset_modal').serializeArray());
-                if(data['name']=='') {
-                    alert('Ad bosh ola bilmez');
+                if(data['name'] === '')
+                {
+                    Swal.fire({
+                        text: 'Name is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+
+                console.log(data)
+
+                if(data['text'] === '')
+                {
+                    Swal.fire({
+                        text: 'Text is required',
+                        icon: 'warning',
+                    })
+                    return;
+                } else if(data['text'].length < 10)
+                {
+                    Swal.fire({
+                        text: 'Min text length must be at least 10 characters',
+                        icon: 'warning',
+                    })
                     return;
                 }
 
                 $.post('<?php echo URL;?>text_presets/add',data, (res) => {
-                    if(res == 'success'){
+                    if(res === 'success'){
                         location.reload();
                     }
-                    if(res == 'exist'){
-                        alert('Bu adli preset artiq movcuddur')
+                    if(res === 'exist')
+                    {
+                        Swal.fire({
+                            text: 'Preset with name '+data['name']+' is already exist',
+                            icon: 'warning',
+                        })
                     }
                 })
 

@@ -10,14 +10,11 @@
 		</div>
 
 		<!-- Plugin js for this page -->
-		<script src="<?php echo URL; ?>vendors/chartjs/Chart.min.js"></script>
-		<script src="<?php echo URL; ?>vendors/jquery.flot/jquery.flot.js"></script>
-		<script src="<?php echo URL; ?>vendors/jquery.flot/jquery.flot.resize.js"></script>
-		<script src="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-		<script src="<?php echo URL; ?>vendors/apexcharts/apexcharts.min.js"></script>
 		<script src="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 		<script src="<?php echo URL; ?>vendors/moment/moment.min.js"></script>
 		<script src="<?php echo URL; ?>vendors/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.js"></script>
+		<script src="<?php echo URL; ?>vendors/sweetalert2/sweetalert2.min.js"></script>
+		<script src="<?php echo URL; ?>vendors/inputmask/jquery.inputmask.min.js"></script>
 		<!-- End plugin js for this page -->
 
 		<!-- inject:js -->

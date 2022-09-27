@@ -23,6 +23,7 @@
 	<link rel="stylesheet" href="<?php echo URL; ?>vendors/tempusdominus-bootstrap-4/tempusdominus-bootstrap-4.min.css">
 	<link rel="stylesheet" href="<?php echo URL; ?>vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
 	<link rel="stylesheet" href="<?php echo URL; ?>vendors/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="<?php echo URL; ?>vendors/sweetalert2/sweetalert2.min.css">
 	<!-- End plugin css for this page -->
 
 	<!-- inject:css -->
@@ -140,13 +141,13 @@
                                 <img class="wd-80 ht-80 rounded-circle" src="<?php echo URL; ?>images/ds.png" alt="">
                             </div>
                             <div class="text-center">
-                                <p class="tx-16 fw-bolder">Admin</p>
-                                <p class="tx-12 text-muted">amiahburton@gmail.com</p>
+                                <p class="tx-16 fw-bolder"><?php echo $_SESSION['username']; ?></p>
+                                <p class="tx-12 text-muted"><?php echo $_SESSION['name']; ?></p>
                             </div>
                         </div>
                         <ul class="list-unstyled p-1">                            
                             <li class="dropdown-item py-2">
-                                <a href="javascript:;" class="text-body ms-0">
+                                <a href="<?php echo URL;?>auth/logout" class="text-body ms-0">
                                     <i class="me-2 icon-md" data-feather="log-out"></i>
                                     <span>Log Out</span>
                                 </a>

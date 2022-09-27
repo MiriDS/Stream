@@ -346,7 +346,7 @@ class Model
     }
     public function removeTextPreset($id)
     {
-//        $sql = "UPDATE `text_presets` SET is_deleted=1 WHERE id=:id";
+        $sql = "UPDATE `text_presets` SET is_deleted=1 WHERE id=:id";
         $query = $this->db->prepare($sql);
         $params = array(':id' => $id);
         $query->execute($params);
@@ -354,9 +354,6 @@ class Model
             print 'success';
         }
     }
-
-
-
     public function getChannelsGroups() {
         $query = $this->db->prepare("SELECT *,(SELECT COUNT(0) FROM ch_groups_channels WHERE ch_group_id=tb1.id AND is_deleted=0)channel_count FROM `ch_groups` tb1 WHERE is_deleted=0");
         $query->execute();
@@ -593,7 +590,8 @@ WHERE tb1.is_deleted=0 $filter");
         {
             $_SESSION['auth'] = 1;
             $_SESSION['uid'] = $checkUser->id;
-            $_SESSION['name'] = $checkUser->username;
+            $_SESSION['name'] = $checkUser->name;
+            $_SESSION['username'] = $checkUser->username;
             return 'success';
         }
         else

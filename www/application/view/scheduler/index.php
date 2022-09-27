@@ -96,11 +96,13 @@
                     <form id="scheduler_modal_form">
                         <input type="hidden" name="id" value="0" />
                         <div class="row">
-                            <div class="col-12 mb-3">
+                            <div class="col-6 mb-3">
                                 <label for="name" class="form-label">Task name:</label>
                                 <input type="text" class="form-control" id="name" name="name" />
                             </div>
-                            <div class="col-6 mb-3">
+                        </div>
+                        <div class="row">
+                            <div class="col-4 mb-3">
                                 <label for="text_preset" class="form-label">Text preset:</label>
                                 <select class="form-select" id="text_preset" name="text_preset">
                                     <option selected>Select text preset</option>
@@ -111,7 +113,7 @@
                                     ?>
                                 </select>
                             </div>
-                            <div class="col-6 mb-3">
+                            <div class="col-4 mb-3">
                                 <label for="graphic_preset" class="form-label">Graphic preset:</label>
                                 <select class="form-select" id="graphic_preset" name="graphic_preset">
                                     <option selected>Select graphic preset</option>
@@ -122,7 +124,7 @@
                                     ?>
                                 </select>
                             </div>                            
-                            <div class="col-6 mb-3">
+                            <div class="col-4 mb-3">
                                 <label for="group" class="form-label">Group:</label>
                                 <select class="form-select" id="group" name="group">
                                     <option selected>Select channel group</option>
@@ -136,7 +138,6 @@
 
                             <div class="col-4 mb-3">
                                 <label for="start_time" class="form-label">Start time:</label>
-                                <!-- <input type="text" class="form-control" id="start_time" name="start_time" /> -->
                                 <div class="form-group">
                                     <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
                                         <input type="text" name="start_time" class="form-control datetimepicker-input datetimepicker1" data-target="#datetimepicker1"/>
@@ -153,8 +154,7 @@
                                 </div>
                             </div>
                             <div class="col-4 mb-3">
-                                <label for="end_time" class="form-label">End time:</label>
-                                <!-- <input type="text" class="form-control" id="end_time" name="end_time" /> -->
+                                <label for="end_time" class="form-label">End time:</label>                                
                                 <div class="form-group">
                                     <div class="input-group date" id="datetimepicker2" data-target-input="nearest">
                                         <input type="text" name="end_time" class="form-control datetimepicker-input datetimepicker2" data-target="#datetimepicker2"/>
@@ -283,45 +283,61 @@
         $('#addScheduleTask').on('click', function() {
             var data = objectifyForm($('#scheduler_modal_form').serializeArray());
             if(data['name']=='') {
-                alert('Name is required');
+                Swal.fire({
+                    text: 'Task name is required',
+                    icon: 'warning',
+                })
                 return;
             }
-            if((data['text_preset']>0)==false) {
-                alert('Text preset is required');
+            if(!(data['text_preset'] > 0)) {
+                Swal.fire({
+                    text: 'Text preset is required',
+                    icon: 'warning',
+                })
                 return;
             }
-            if((data['graphic_preset']>0)==false) {
-                alert('Graphic preset is required');
+            if(!(data['graphic_preset'] > 0)) {
+                Swal.fire({
+                    text: 'Graphic preset is required',
+                    icon: 'warning',
+                })
                 return;
             }
-            if((data['group']>0)==false) {
-                alert('Group is required');
-                return;
-            }
-
-           /* if(data['duration']=='') {
-                alert('Duration is required');
-                return;
-            }*/
-
-            if(data['start_time']=='') {
-                alert('Start time is required');
-                return;
-            }
-
-            if(data['period']>0 && data['period']<5) {
-                alert('Minimal value for period is 5 ');
+            if(!(data['group'] > 0)) {
+                Swal.fire({
+                    text: 'Group is required',
+                    icon: 'warning',
+                })
                 return;
             }
 
+            if(data['start_time'] === '') {
+                Swal.fire({
+                    text: 'Start time is required',
+                    icon: 'warning',
+                })
+                return;
+            }
+
+            if(data['period'] > 0 && data['period'] < 5) {
+                Swal.fire({
+                    text: 'Minimal value for period is 5',
+                    icon: 'warning',
+                })
+                return;
+            }
 
 
             $.post('<?php echo URL;?>scheduler/add',data, (res) => {
                 if(res == 'success'){
                     location.href='/scheduler';
                 }
-                if(res == 'exist'){
-                    alert('Already exist')
+                if(res == 'exist')
+                {
+                    Swal.fire({
+                        text: 'Scheduler with this configurations is already exist',
+                        icon: 'warning',
+                    })
                 }
             })
 

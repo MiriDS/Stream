@@ -14,7 +14,7 @@
 
 
         <div class="row">
-            <div class="col-lg-12 col-xl-12 stretch-card">
+            <div class="col-lg-6 col-xl-6 stretch-card">
                 <div class="card">
                     <div class="card-body">
                         <div class="table-responsive">
@@ -90,43 +90,39 @@
             jQuery(function () {
 
                 $('#addUser').on('click', function() {
-                    
-                    $('#addUser span').removeClass('d-none');
-                    
+                                       
                     var correct = true,
                         name = $('#name').val(),
                         username = $('#username').val(),
                         password = $('#password').val();
 
                     if (typeof name === 'undefined' || name === '') {
-                        $('#addUser span').addClass('d-none');
-
-                        $('#name').css('border-color', '#ff3366');
-
-                        setTimeout(() => {
-                            $('#name').css('border-color', '#e9ecef');
-                        }, 1500);
-
+                        Swal.fire({
+                            text: 'Name is required',
+                            icon: 'warning',
+                        })
+                        correct = false;
                         return;
                     } else if (typeof username === 'undefined' || username === '') {
-                        $('#addUser span').addClass('d-none');
-
-                        $('#username').css('border-color', '#ff3366');
-
-                        setTimeout(() => {
-                            $('#username').css('border-color', '#e9ecef');
-                        }, 1500);
-
+                        Swal.fire({
+                            text: 'Username is required',
+                            icon: 'warning',
+                        })
+                        correct = false;
                         return;
                     } else if (typeof password === 'undefined' || password === '') {
-                        $('#addUser span').addClass('d-none');
-
-                        $('#password').css('border-color', '#ff3366');
-
-                        setTimeout(() => {
-                            $('#password').css('border-color', '#e9ecef');
-                        }, 3000);
-
+                        Swal.fire({
+                            text: 'Password is required',
+                            icon: 'warning',
+                        })
+                        correct = false;
+                        return;
+                    } else if (password.length < 6) {
+                        Swal.fire({
+                            text: 'Min password length must be at least 6 characters',
+                            icon: 'warning',
+                        })
+                        correct = false;
                         return;
                     }
 
@@ -152,16 +148,20 @@
 
                             if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Created.',
+                                    text: 'User is succesfully created!',
+                                    icon: 'success',
+                                }).then(() => {
+                                    location.reload();
+                                })
                             }
                             else if (result === 'exist')
-                            {                                
-
-                                $('#error').html('Username already exists');
-
-                                setTimeout(() => {
-                                    $('#error').html('');
-                                }, 5000);
+                            {
+                                Swal.fire({
+                                    text: 'Username is already exists',
+                                    icon: 'warning',
+                                })
                             }
                         });
                     }

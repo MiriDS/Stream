@@ -72,9 +72,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <div id="error" class="alert-danger f-left" role="alert">
-
-                    </div>
                     <button type="button" class="btn btn-primary" id="addServer">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         Add
@@ -91,10 +88,19 @@
             $('.delete').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
 
-                if (confirm("Silmek isteyinizde eminsiniz?") == true) {
-                    var data = new FormData();
-                    data.append('id', sid);
-                    $.ajax(
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6571ff',
+                    cancelButtonColor: '#ff3366',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var data = new FormData();
+                        data.append('id', sid);
+                        $.ajax(
                         {
                             url: '<?php echo URL;?>servers/remove',
                             data: data,
@@ -105,77 +111,61 @@
                         })
                         .done(function(result)
                         {
-                            $('#addServer span').addClass('d-none');
-
                             if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Server has been deleted.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })
                             }
                         });
-                }
+                    }
+                })
             });
 
-            $('#addServer').on('click', function() {
-
-                $('#addServer span').removeClass('d-none');
-
-                var correct = true,
-                    ipaddress = $('#ipaddress').val();
+            $('#addServer').on('click', function()
+            {
+                var ipaddress = $('#ipaddress').val();
 
                 if (typeof ipaddress === 'undefined' || ipaddress === '') {
-                    $('#addServer span').addClass('d-none');
-
-                    $('#ipaddress').css('border-color', '#ff3366');
-
-                    setTimeout(() => {
-                        $('#ipaddress').css('border-color', '#e9ecef');
-                    }, 1500);
-
+                    Swal.fire({
+                        text: 'IP address is required',
+                        icon: 'warning',
+                    })
                     return;
                 }
 
-                if (correct) {
-                    var data = new FormData();
+                var data = new FormData();
+                data.append('ip', ipaddress);
+                $.ajax(
+                {
+                    url: '<?php echo URL;?>servers/add',
+                    data: data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    type: 'POST'
+                })
+                .done(function(result)
+                {
+                    $('#addServer span').addClass('d-none');
 
-                    data.append('ip', ipaddress);
-
-                    $.ajax(
-                        {
-                            url: '<?php echo URL;?>servers/add',
-                            data: data,
-                            cache: false,
-                            contentType: false,
-                            processData: false,
-                            type: 'POST'
+                    if(result === 'success')
+                    {
+                        location.reload();
+                    }
+                    else if (result === 'exist')
+                    {
+                        Swal.fire({
+                            text: 'Server with IP: '+ipaddress+' is already exist',
+                            icon: 'warning',
                         })
-                        .done(function(result)
-                        {
-                            $('#addServer span').addClass('d-none');
-
-                            if(result === 'success')
-                            {
-                                location.reload();
-                            }
-                            else if (result === 'exist')
-                            {
-
-                                $('#error').html('Server already exists');
-
-                                setTimeout(() => {
-                                    $('#error').html('');
-                                }, 5000);
-                            }
-                        });
-                }
+                    }
+                });
             })
-
-        // initializing inputmask
-        //$(":input").inputmask();
 
         })(jQuery);
     </script>
-
-
-    <!-- Plugin js for this page -->
-	<script src="<?php echo URL; ?>vendors/inputmask/jquery.inputmask.min.js"></script>
-	<!-- End plugin js for this page -->

@@ -66,11 +66,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Channels:</label>
-                            <ul class="channel-list">
-                                <li> <input type="checkbox"> Az tv </li>
-                            </ul>
-                            <!--<label for="name" class="form-label">Name:</label>
-                            <input type="text" class="form-control" id="name" data-inputmask-alias="***.***.***.***" />-->
+                            <div style="height: 300px;overflow-x:hidden;">
+                                <ul class="list-group channel-list">
+                                    
+                                </ul>
+                            </div>                            
                         </div>
                     </form>
                 </div>
@@ -97,18 +97,21 @@
                         $('#addChannelGroupModal .channel-list').empty();
                         var data = res['data'];
                         for(var n in data) {
-                            $('#addChannelGroupModal .channel-list').append('<li ch_id="'+data[n]['id']+'"><label> <input type="checkbox" '+(ch_group_id>0 && data[n]['ch_group_id'] == ch_group_id?"checked": "")+'>'+data[n]['alias']+'</label></li>');
+                            $('#addChannelGroupModal .channel-list').append('<li class="list-group-item" ch_id="'+data[n]['id']+'"><div class="form-check"><input type="checkbox" class="form-check-input" id="check'+(ch_group_id + n)+'" '+(ch_group_id > 0 && data[n]['ch_group_id'] == ch_group_id ? "checked": "")+'><label class="form-check-label" for="check'+(ch_group_id + n)+'">'+data[n]['alias']+'</label></div></li>');
                         }
                     }
                 }
                 catch (e) {
-                    alert('some error')
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    })
                 }
             })
         }
         (function($) {
             'use strict';
-
 
             $('.edit').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
@@ -124,10 +127,19 @@
             $('.delete').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
 
-                if (confirm("Silmek isteyinizde eminsiniz?") == true) {
-                    var data = new FormData();
-                    data.append('id', sid);
-                    $.ajax(
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6571ff',
+                    cancelButtonColor: '#ff3366',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var data = new FormData();
+                        data.append('id', sid);
+                        $.ajax(
                         {
                             url: '<?php echo URL;?>channel_groups/remove',
                             data: data,
@@ -139,16 +151,21 @@
                         .done(function(result)
                         {   if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Channel group has been deleted.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })
                             }
                         });
-                }
+                    }
+                })
             });
 
 
             $('#addChannelGroup').on('click', function() {
-
-                $('#addChannelGroup span').removeClass('d-none');
 
                 var correct = true,
                     ch_list = [],
@@ -163,14 +180,11 @@
                 })
 
                 if (typeof name === 'undefined' || name === '') {
-                    $('#addChannelGroup span').addClass('d-none');
-
-                    $('#name').css('border-color', '#ff3366');
-
-                    setTimeout(() => {
-                        $('#name').css('border-color', '#e9ecef');
-                    }, 1500);
-
+                    Swal.fire({
+                        text: 'Name is required',
+                        icon: 'warning'
+                    })
+                    correct = false;
                     return;
                 }
 
@@ -196,27 +210,31 @@
 
                             if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Added!',
+                                    text: 'Channel group added successfully.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })                                
                             }
                             else if (result === 'exist')
                             {
-                                $('#error').html('Channel group already exists');
-                                setTimeout(() => {
-                                    $('#error').html('');
-                                }, 5000);
+                                Swal.fire({
+                                    text: 'Channel group with name: '+name+' is already exist.',
+                                    icon: 'warning'
+                                })
                             }
                             else {
-                                $('#error').html(result);
-                                setTimeout(() => {
-                                    $('#error').html('');
-                                }, 5000);
+                                Swal.fire({
+                                    title: 'Ooops!',
+                                    text: 'Somthing went wrong. Please try again later!',
+                                    icon: 'error'
+                                })
                             }
                         });
                 }
             })
-
-            // initializing inputmask
-            //$(":input").inputmask();
 
         })(jQuery);
     </script>
