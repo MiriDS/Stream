@@ -66,5 +66,18 @@ class Scheduler extends Controller
             }
         }
     }
+
+    public function get_logs()
+    {
+        if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
+        {
+            if(isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id'] > 0)
+            {
+                $result = $this->model->getScheduleLogs((int)$_POST['id']);
+
+                print json_encode(['status'=> 'ok', 'data' => $result],true);
+            }
+        }
+    }
 }
 

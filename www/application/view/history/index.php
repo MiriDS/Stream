@@ -61,7 +61,7 @@
                                             <td>'.htmlspecialchars($item['graphic_preset_name']).'</td>
                                             <td> - </td>
                                             <td>'.htmlspecialchars($item['group_name']).'</td>
-                                            <td>Time</td>
+                                            <td>'.date('d-m-Y H:i',strtotime($item['start_time'])).' - '.($item['end_time']!='' ? date('d-m-Y H:i',strtotime($item['end_time'])): '').'</td>
                                             <td>'.$statusBtn.'</td>
                                             <td>'.$actionBtn.'</td>
                                             <td>View logs</td>

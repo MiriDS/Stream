@@ -510,10 +510,14 @@ WHERE tb1.is_deleted=0 $filter");
         $sql = "UPDATE `scheduler` SET status=:status WHERE id=:id";
         $query = $this->db->prepare($sql);
         $query->execute(['status' => $status, 'id' => $id]);
+
+        $this -> addSchedulerLog($id, $status);
+
         if ($query) {
             print 'success';
         }
     }
+
     public function addScheduleTask()
     {
         $id = isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id']>0 ? (int)$_POST['id']: 0;
@@ -563,7 +567,33 @@ WHERE tb1.is_deleted=0 $filter");
         }
     }
 
+    public function addSchedulerLog($taskId, $action) {
+        $params = array(
+            'task_id' => $taskId,
+            'action' => $action
+        );
+        $sql = "INSERT INTO `scheduler_logs` (task_id, action) VALUES (:task_id, :action)";
+        $query = $this->db->prepare($sql);
+        $query->execute($params);
+    }
 
+    public function getScheduleLogs($id) {
+        $query = $this->db->prepare("SELECT * FROM scheduler_logs tb1
+ WHERE task_id='$id'");
+        $query->execute();
+
+        $result = [];
+        $data = $query->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($data as $datum) {
+            if(!in_array($datum['action'], [1,2,3])) {
+                //DOnt show other logs
+                continue;
+            }
+            $datum['action_name'] = $datum['action'] == 1 ? 'Run' : ($datum['action'] == 2 ? 'Pause': ($datum['action'] == 3 ? 'Cancel': ''));
+            $result[] = $datum;
+        }
+        return $result;
+    }
 
 
     //  ####  ####  ###   ####

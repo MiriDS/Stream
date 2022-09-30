@@ -72,7 +72,7 @@
                                             <td>'.(int)($item['duration']).'</td>
                                             <td>'.$statusBtn.'</td>
                                             <td>'.$actionBtn.'</td>
-                                            <td>View logs</td>
+                                            <td><ddd class="view-logs"> View logs </ddd></td>
                                         </tr>';
                                 }
                             ?>
@@ -194,6 +194,40 @@
         </div>
     </div>
 
+
+
+    <div class="modal fade" id="scheduleLogsModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Logs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="btn-close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row">
+                            <table class="table table-hover mb-0" id="logs_table">
+                                <thead>
+                                <tr>
+                                    <th class="pt-0">#</th>
+                                    <th class="pt-0">Date</th>
+                                    <th class="pt-0">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         $(function() {
         'use strict';
@@ -280,6 +314,23 @@
                 }
             })
         })
+
+        $('.view-logs').on('click', function() {
+            var sid = $(this).closest('tr').attr('sid');
+            var data = {id: sid};
+            $.post('<?php echo URL;?>scheduler/get_logs',data, (res) => {
+                res = JSON.parse(res);
+                var data = res['data'];
+                $('#logs_table tbody').empty();
+                for (var n in data) {
+                    $('#logs_table tbody').append('<tr><td>'+(parseInt(n)+1)+'</td><td>'+data[n]['created_at']+'</td><td>'+data[n]['action_name']+'</td></tr>')
+                }
+                $('#scheduleLogsModal').modal('show');
+                console.log(res);
+
+            })
+        })
+
         $('#addScheduleTask').on('click', function() {
             var data = objectifyForm($('#scheduler_modal_form').serializeArray());
             if(data['name']=='') {
