@@ -19,10 +19,11 @@ class Helper
                 ],
                 'body' => $query
             ]);
-
-            return $response->getBody();
+            $aa = $response->getBody();
+            return $aa;
 
         } catch (Exception $e) {
+            //var_dump($e->getMessage());
             return false;
         }
     }

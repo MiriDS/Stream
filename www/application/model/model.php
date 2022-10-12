@@ -1,5 +1,9 @@
 <?php
 #require APP . "libs/pagination.php";
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
+
 class Model
 {
     /**
@@ -567,12 +571,13 @@ WHERE tb1.is_deleted=0 $filter");
         }
     }
 
-    public function addSchedulerLog($taskId, $action) {
+    public function addSchedulerLog($taskId, $action, $note = "") {
         $params = array(
             'task_id' => $taskId,
-            'action' => $action
+            'action' => $action,
+            'note' => $note
         );
-        $sql = "INSERT INTO `scheduler_logs` (task_id, action) VALUES (:task_id, :action)";
+        $sql = "INSERT INTO `scheduler_logs` (task_id, action, note) VALUES (:task_id, :action, :note)";
         $query = $this->db->prepare($sql);
         $query->execute($params);
     }
@@ -593,6 +598,115 @@ WHERE tb1.is_deleted=0 $filter");
             $result[] = $datum;
         }
         return $result;
+    }
+
+
+    public function startSchduleTasks() {
+        $actionTime = date('Y-m-d H:i');
+
+        $query = $this->db->prepare("SELECT
+		tb5.server_ip,
+		tb5.id_from_api AS channel_id_api,
+        tb1.id,
+        tb1.graphic_preset,
+        tb1.group,
+        tb1.name,
+        tb1.status,
+        tb1.start_time,
+        tb1.end_time,
+	    tb4.channel_id,
+	    tb3.passes_count,
+	    tb3.pause_between_passes,
+	    tb3.bottom_margin,
+	    tb3.font_size,
+	    tb3.text_padding,
+	    tb3.font_color,
+	    tb3.background_color,
+	    tb3.text_speed,
+        tb2.text text_preset_text,
+        tb1.period
+FROM scheduler tb1
+    LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
+    LEFT JOIN graphic_presets tb3 ON tb3.id=tb1.graphic_preset
+	LEFT JOIN ch_groups_channels tb4 ON tb4.ch_group_id=tb1.`group` AND tb4.is_deleted=0 
+	LEFT JOIN channels tb5 ON tb5.id=tb4.channel_id AND tb5.is_deleted=0
+		
+WHERE 
+tb1.is_deleted=0 AND (tb1.status=1 AND (tb1.end_time IS NULL OR tb1.end_time>'$actionTime'))
+
+AND ((period=0 AND start_time='$actionTime') OR (period>0 AND TIMESTAMPDIFF(MINUTE,start_time,'$actionTime')%period=0))
+
+");
+
+        $query->execute();
+
+        $taskList = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($taskList AS $task) {
+            $channel_id_api = $task['channel_id_api'];
+            $serverIp = $task['server_ip'];
+
+            $graphQLquery = '[{
+        "operationName": "startScrollingTextOverlay",
+        "variables": {
+            "node": "'.$channel_id_api.'",
+            "overlay": {
+                "id": -1,
+                "text": "'.$task['text_preset_text'].'",
+                "passes": '.($task['period'] == 0 ? -1 : $task['passes_count']).',
+                "pause": '.$task['pause_between_passes'].',
+                "bottom": '.$task['bottom_margin'].',
+                "size": '.$task['font_size'].',
+                "padding": '.$task['text_padding'].',
+                "color": "'.$task['font_color'].'",
+                "background_color": "'.$task['background_color'].'",
+                "speed": '.$task['text_speed'].'
+            }
+        },
+        "query": "mutation startScrollingTextOverlay($overlay: InputScrollingTextOverlay!, $node: ID!) {startScrollingTextOverlay(overlay: $overlay, node: $node) {id}}"
+}
+]
+';
+            $request = Helper::graphqlRequest($serverIp, $graphQLquery);
+            $this -> addSchedulerLog($task['id'], '6', 'start request '. $channel_id_api. ' -- '.$request);
+        }
+    }
+
+    public function stopInfiniteTask($tid) {
+
+        $query = $this->db->prepare("SELECT
+		tb5.server_ip,
+		tb5.id_from_api AS channel_id_api,
+        tb1.id,
+        tb1.period
+FROM scheduler tb1
+	LEFT JOIN ch_groups_channels tb4 ON tb4.ch_group_id=tb1.`group` AND tb4.is_deleted=0 
+	LEFT JOIN channels tb5 ON tb5.id=tb4.channel_id AND tb5.is_deleted=0
+		
+WHERE 
+tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
+
+        $query->execute();
+
+        $taskList = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($taskList AS $task) {
+            $channel_id_api = $task['channel_id_api'];
+            $serverIp = $task['server_ip'];
+
+            $graphQLquery = '[{
+        "operationName": "removeOverlay",
+        "variables": {
+            "node": "'.$channel_id_api.'",
+            "overlay": -1
+        },
+        "query": "mutation removeOverlay($node: ID!, $overlay: Float!) {removeOverlay(node: $node, overlay: $overlay)}"
+}
+]
+';
+            $request = Helper::graphqlRequest($serverIp, $graphQLquery);
+            $this -> addSchedulerLog($task['id'], '6', 'stop request '. $channel_id_api. ' -- '.$request);
+        }
     }
 
 
