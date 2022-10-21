@@ -17,17 +17,17 @@ class Application
      */
     public function __construct()
     {
+        // create array with URL parts in $url
+        $this->splitUrl();
+        
         // Authentication check
-        if(!isset($_SESSION['auth']) || $_SESSION['auth'] !== 1)
+        if($this->url_controller !== 'cron' && (!isset($_SESSION['auth']) || $_SESSION['auth'] !== 1))
         {
             require APP . 'controller/auth.php';
             $page = new Auth();
             $page->index();
             return;
         }
-
-        // create array with URL parts in $url
-        $this->splitUrl();
 
         // check for controller: no controller given ? then load start-page
         if (!$this->url_controller) {

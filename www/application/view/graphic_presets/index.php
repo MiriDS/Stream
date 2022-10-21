@@ -178,10 +178,19 @@
             $('.delete').on('click', function() {
                 var sid = $(this).closest('tr').attr('sid');
 
-                if (confirm("Silmek isteyinizde eminsiniz?") == true) {
-                    var data = new FormData();
-                    data.append('id', sid);
-                    $.ajax(
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6571ff',
+                    cancelButtonColor: '#ff3366',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var data = new FormData();
+                        data.append('id', sid);
+                        $.ajax(
                         {
                             url: '<?php echo URL;?>graphic_presets/remove',
                             data: data,
@@ -196,25 +205,94 @@
 
                             if(result === 'success')
                             {
-                                location.reload();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Text preset has been deleted.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                })
                             }
                         });
-                }
+                    }
+                })
             });
 
             $('#addGraphicPreset').on('click', function() {
                 var data = objectifyForm($('#graphic_preset_modal').serializeArray());
                 if(data['name']=='') {
-                    alert('Ad bosh ola bilmez');
+                    Swal.fire({
+                        text: 'Name is required',
+                        icon: 'warning',
+                    })
                     return;
                 }
-
+                if(data['passes']=='') {
+                    Swal.fire({
+                        text: 'Passes count is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['pause']=='') {
+                    Swal.fire({
+                        text: 'Pause between passes is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['font_color']=='') {
+                    Swal.fire({
+                        text: 'Font Color is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['background_color']=='') {
+                    Swal.fire({
+                        text: 'Background Color is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['margin']=='') {
+                    Swal.fire({
+                        text: 'Bottom margin is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['font_size']=='') {
+                    Swal.fire({
+                        text: 'Font Size is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['padding']=='') {
+                    Swal.fire({
+                        text: 'Text padding is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                if(data['speed']=='') {
+                    Swal.fire({
+                        text: 'Text speed is required',
+                        icon: 'warning',
+                    })
+                    return;
+                }
+                
                 $.post('<?php echo URL;?>graphic_presets/add',data, (res) => {
                     if(res == 'success'){
                         location.reload();
                     }
                     if(res == 'exist'){
-                        alert('Bu adli preset artiq movcuddur')
+                        Swal.fire({
+                            text: 'Preset with name '+data['name']+' is already exist',
+                            icon: 'warning',
+                        })
                     }
                 })
 

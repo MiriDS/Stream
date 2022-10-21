@@ -168,8 +168,6 @@
                     return;
                 }
 
-                console.log(data)
-
                 if(data['text'] === '')
                 {
                     Swal.fire({

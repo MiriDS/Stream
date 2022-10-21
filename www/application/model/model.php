@@ -583,8 +583,7 @@ WHERE tb1.is_deleted=0 $filter");
     }
 
     public function getScheduleLogs($id) {
-        $query = $this->db->prepare("SELECT * FROM scheduler_logs tb1
- WHERE task_id='$id'");
+        $query = $this->db->prepare("SELECT * FROM scheduler_logs tb1 WHERE task_id='$id'");
         $query->execute();
 
         $result = [];
@@ -605,38 +604,35 @@ WHERE tb1.is_deleted=0 $filter");
         $actionTime = date('Y-m-d H:i');
 
         $query = $this->db->prepare("SELECT
-		tb5.server_ip,
-		tb5.id_from_api AS channel_id_api,
-        tb1.id,
-        tb1.graphic_preset,
-        tb1.group,
-        tb1.name,
-        tb1.status,
-        tb1.start_time,
-        tb1.end_time,
-	    tb4.channel_id,
-	    tb3.passes_count,
-	    tb3.pause_between_passes,
-	    tb3.bottom_margin,
-	    tb3.font_size,
-	    tb3.text_padding,
-	    tb3.font_color,
-	    tb3.background_color,
-	    tb3.text_speed,
-        tb2.text text_preset_text,
-        tb1.period
-FROM scheduler tb1
-    LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
-    LEFT JOIN graphic_presets tb3 ON tb3.id=tb1.graphic_preset
-	LEFT JOIN ch_groups_channels tb4 ON tb4.ch_group_id=tb1.`group` AND tb4.is_deleted=0 
-	LEFT JOIN channels tb5 ON tb5.id=tb4.channel_id AND tb5.is_deleted=0
+            tb5.server_ip,
+            tb5.id_from_api AS channel_id_api,
+            tb1.id,
+            tb1.graphic_preset,
+            tb1.group,
+            tb1.name,
+            tb1.status,
+            tb1.start_time,
+            tb1.end_time,
+            tb4.channel_id,
+            tb3.passes_count,
+            tb3.pause_between_passes,
+            tb3.bottom_margin,
+            tb3.font_size,
+            tb3.text_padding,
+            tb3.font_color,
+            tb3.background_color,
+            tb3.text_speed,
+            tb2.text text_preset_text,
+            tb1.period
+        FROM scheduler tb1
+        LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
+        LEFT JOIN graphic_presets tb3 ON tb3.id=tb1.graphic_preset
+        LEFT JOIN ch_groups_channels tb4 ON tb4.ch_group_id=tb1.`group` AND tb4.is_deleted=0 
+        LEFT JOIN channels tb5 ON tb5.id=tb4.channel_id AND tb5.is_deleted=0
 		
-WHERE 
-tb1.is_deleted=0 AND (tb1.status=1 AND (tb1.end_time IS NULL OR tb1.end_time>'$actionTime'))
-
-AND ((period=0 AND start_time='$actionTime') OR (period>0 AND TIMESTAMPDIFF(MINUTE,start_time,'$actionTime')%period=0))
-
-");
+        WHERE 
+        tb1.is_deleted=0 AND (tb1.status=1 AND (tb1.end_time IS NULL OR tb1.end_time>'$actionTime'))
+        AND ((period=0 AND start_time='$actionTime') OR (period>0 AND TIMESTAMPDIFF(MINUTE,start_time,'$actionTime')%period=0))");
 
         $query->execute();
 
@@ -710,13 +706,7 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
     }
 
 
-    //  ####  ####  ###   ####
-    //  #     #  #  #  #  #__
-    //  #     #  #  #  #  #
-    //  ####  ####  ###   ####
-
-
-    // Code admin area
+    // Login check
     public function checkPassword($username, $password)
     {
         // Check if user exist
