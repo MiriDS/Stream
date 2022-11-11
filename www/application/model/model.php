@@ -648,7 +648,7 @@ WHERE tb1.is_deleted=0 $filter");
             "node": "'.$channel_id_api.'",
             "overlay": {
                 "id": -1,
-                "text": "'.$task['text_preset_text'].'",
+                "text": "'.addcslashes($task['text_preset_text'], '"\\/').'",
                 "passes": '.($task['period'] == 0 ? -1 : $task['passes_count']).',
                 "pause": '.$task['pause_between_passes'].',
                 "bottom": '.$task['bottom_margin'].',
