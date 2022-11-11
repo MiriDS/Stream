@@ -6,7 +6,7 @@ services:
         restart: always
         image: nginx:alpine
         ports:
-            - "8000:8000"
+            - "0.0.0.0:80:8000"
         volumes:
             - ./www:/var/www
             - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf

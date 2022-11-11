@@ -44,7 +44,8 @@ if (ENVIRONMENT == 'development' || ENVIRONMENT == 'dev') {
 
 define('URL_PUBLIC_FOLDER', 'public');
 define('URL_PROTOCOL', '//');
-define('URL_DOMAIN', strlen($_SERVER['SERVER_NAME']) > 5 ? $_SERVER['SERVER_NAME'] : '127.0.0.1:8000');
+// define('URL_DOMAIN', strlen($_SERVER['SERVER_NAME']) > 5 ? $_SERVER['SERVER_NAME'] : '127.0.0.1:8000');
+define('URL_DOMAIN', $_SERVER['HTTP_HOST']);
 define('URL_SUB_FOLDER', str_replace(URL_PUBLIC_FOLDER, '', dirname($_SERVER['SCRIPT_NAME'])));
 define('URL', URL_PROTOCOL . URL_DOMAIN . URL_SUB_FOLDER);
 
