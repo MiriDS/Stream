@@ -29,6 +29,12 @@ require APP . 'libs/helper.php';
 // start session
 session_start();
 
+
+if (isset($_GET['url']) && $_GET['url'] === '/init') {
+    require ROOT . 'public/init.php';
+    exit;
+}
+
 // load application class
 require APP . 'core/application.php';
 require APP . 'core/controller.php';
