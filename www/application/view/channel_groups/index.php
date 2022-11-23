@@ -90,6 +90,10 @@
 
     <script>
         function getChannelList(ch_group_id) {
+            if (!ch_group_id)
+            {
+                $('#addChannelGroupModal [name="id"]').val('');
+            }
             $.post('<?php echo URL;?>channel_groups/channels',{'ch_group_id':ch_group_id },function (result) {
                 try {
                     var res = JSON.parse(result)

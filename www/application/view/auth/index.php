@@ -48,6 +48,7 @@
                   					<div class="auth-form-wrapper px-4 py-5">
                     					<a href="#" class="noble-ui-logo d-block mb-2">S<span>C</span></a>
                     					<h5 class="text-muted fw-normal mb-4">Welcome back! Log in to your account.</h5>
+										<?php if (isset($loginState) && $loginState == 'error') { print '<div class="alert alert-danger" role="alert">Username or password is incorrect. Please try again.</div>'; } ?>										
                     					<form class="forms-sample" action="<?php echo URL; ?>auth" method="post">
 											<div class="mb-3">
 												<label for="username" class="form-label">Login</label>

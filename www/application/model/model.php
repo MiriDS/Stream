@@ -717,17 +717,24 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
 
         $checkUser = $query->fetch(PDO::FETCH_ASSOC);
 
-        $passwordOrign = $checkUser['password'];
-        $salt = $checkUser['salt'];
-
-        if(md5($password . md5($salt))==$passwordOrign)
+        if (isset($checkUser) && isset($checkUser['password']) && isset($checkUser['salt']))
         {
+            $passwordOrign = $checkUser['password'];
+            $salt = $checkUser['salt'];
 
-            $_SESSION['auth'] = 1;
-            $_SESSION['uid'] = $checkUser['id'];
-            $_SESSION['name'] = $checkUser['name'];
-            $_SESSION['username'] = $checkUser['username'];
-            return 'success';
+            if(md5($password . md5($salt))==$passwordOrign)
+            {
+
+                $_SESSION['auth'] = 1;
+                $_SESSION['uid'] = $checkUser['id'];
+                $_SESSION['name'] = $checkUser['name'];
+                $_SESSION['username'] = $checkUser['username'];
+                return 'success';
+            }
+            else
+            {
+                return 'error';
+            }
         }
         else
         {

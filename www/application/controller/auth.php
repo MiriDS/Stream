@@ -18,7 +18,7 @@ class Auth extends Controller
             }
             else if($loginState == 'error')
             {
-                header('Location:'.URL);
+                require APP . 'view/auth/index.php';
             }
             else
             {
