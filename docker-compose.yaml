@@ -19,6 +19,8 @@ services:
         build:
             dockerfile: ./php-fpm/Dockerfile
             context: .
+        environment:
+            TZ: "Asia/Baku"
         ports:
             - "9000:9000"
         volumes:
@@ -31,6 +33,7 @@ services:
             MARIADB_USER: root
             MARIADB_PASSWORD: pass
             MARIADB_ROOT_PASSWORD: pass
+            TZ: "Asia/Baku"
         volumes:
             - data_db:/var/lib/mysql
         ports:
