@@ -132,7 +132,7 @@ class Model
 
     public function getFreeChannels($ch_group_id)
     {
-        $sql = " SELECT *,(SELECT ch_group_id FROM ch_groups_channels WHERE is_deleted=0 AND channel_id=tb1.id LIMIT 1 )ch_group_id FROM `channels` tb1 WHERE id NOT IN (SELECT channel_id FROM ch_groups_channels WHERE is_deleted=0 AND ch_group_id!=:ch_group_id) AND  is_deleted=0 ";
+        $sql = " SELECT *,(SELECT ch_group_id FROM ch_groups_channels WHERE is_deleted=0 AND channel_id=tb1.id LIMIT 1 )ch_group_id FROM `channels` tb1 WHERE /*id NOT IN (SELECT channel_id FROM ch_groups_channels WHERE is_deleted=0 AND ch_group_id!=:ch_group_id) AND*/  is_deleted=0 ";
         $query = $this->db->prepare($sql);
         $query->execute(['ch_group_id' => $ch_group_id]);
         $channels = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -232,6 +232,16 @@ class Model
         }
     }
 
+    public function removeUser($id)
+    {
+        $sql = "DELETE FROM `admins` WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $params = array(':id' => $id);
+        $query->execute($params);
+        if ($query) {
+            print 'success';
+        }
+    }
     public function addGraphicPreset()
     {
         $id = isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id']>0 ? (int)$_POST['id']: 0;
@@ -383,12 +393,12 @@ class Model
                 exit('channel error');
             }
             $ch_id = (int)$ch_id;
-            $check = $this->db->prepare("SELECT * FROM `ch_groups_channels` WHERE ch_group_id!=? AND channel_id=? AND is_deleted=0");
+            /*$check = $this->db->prepare("SELECT * FROM `ch_groups_channels` WHERE ch_group_id!=? AND channel_id=? AND is_deleted=0");
             $check->execute([$id, $ch_id]);
             $exist = $check->fetch(PDO::FETCH_ASSOC);
             if($exist) {
                 exit('wrong channel');
-            }
+            }*/
         }
 
         if(!$id) {
@@ -463,12 +473,13 @@ class Model
     tb1.graphic_preset,
     tb1.group,
     tb1.name,
+    tb1.period,
     tb1.status,
     tb1.start_time,
     tb1.end_time,
     tb2.name text_preset_name,
     (LENGTH(tb2.text)/tb3.text_speed * 60) duration,
-    tb2.name AS graphic_preset_name,
+    tb3.name AS graphic_preset_name,
     (SELECT name FROM ch_groups tb4 WHERE tb4.id=tb1.group)group_name
 FROM scheduler tb1
     LEFT JOIN text_presets tb2 ON tb2.id=tb1.text_preset
@@ -540,8 +551,8 @@ WHERE tb1.is_deleted=0 $filter");
         $check->execute(['name' => $name, 'id' => $id]);
         $exist = $check->fetchAll(PDO::FETCH_ASSOC);
         if (count($exist) > 0) {
-            print 'exist';
-            return;
+            /*print 'exist';
+            return;*/
         }
 
         $params = array(
@@ -585,15 +596,20 @@ WHERE tb1.is_deleted=0 $filter");
     public function getScheduleLogs($id) {
         $query = $this->db->prepare("SELECT * FROM scheduler_logs tb1 WHERE task_id='$id'");
         $query->execute();
-
+        $statusNameMap = [
+            1 => 'Run',
+            2 => 'Pause',
+            3 => 'Cancel',
+            6 => 'Cron'
+        ];
         $result = [];
         $data = $query->fetchAll(PDO::FETCH_ASSOC);
         foreach ($data as $datum) {
-            if(!in_array($datum['action'], [1,2,3])) {
+            if(!in_array($datum['action'], [1,2,3,6])) {
                 //DOnt show other logs
                 continue;
             }
-            $datum['action_name'] = $datum['action'] == 1 ? 'Run' : ($datum['action'] == 2 ? 'Pause': ($datum['action'] == 3 ? 'Cancel': ''));
+            $datum['action_name'] = $statusNameMap[$datum['action']];
             $result[] = $datum;
         }
         return $result;
@@ -638,7 +654,14 @@ WHERE tb1.is_deleted=0 $filter");
 
         $taskList = $query->fetchAll(PDO::FETCH_ASSOC);
 
+
+        $uTaskId = [];
         foreach ($taskList AS $task) {
+
+            if(!in_array($task['id'],$uTaskId)) {
+                $this -> addSchedulerLog($task['id'], '6', 'Cron request');
+                $uTaskId[] = $task['id'];
+            }
             $channel_id_api = $task['channel_id_api'];
             $serverIp = $task['server_ip'];
 
@@ -664,7 +687,7 @@ WHERE tb1.is_deleted=0 $filter");
 ]
 ';
             $request = Helper::graphqlRequest($serverIp, $graphQLquery);
-            $this -> addSchedulerLog($task['id'], '6', 'start request '. $channel_id_api. ' -- '.$request);
+            $this -> addSchedulerLog($task['id'], '7', 'start request '. $channel_id_api. ' -- '.$request);
         }
     }
 
@@ -701,7 +724,7 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
 ]
 ';
             $request = Helper::graphqlRequest($serverIp, $graphQLquery);
-            $this -> addSchedulerLog($task['id'], '6', 'stop request '. $channel_id_api. ' -- '.$request);
+            $this -> addSchedulerLog($task['id'], '7', 'stop request '. $channel_id_api. ' -- '.$request);
         }
     }
 

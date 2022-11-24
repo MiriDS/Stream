@@ -27,6 +27,9 @@
                                     <th class="pt-0">Text preset</th>
                                     <th class="pt-0">Graphic preset</th>
                                     <th class="pt-0">Group</th>
+                                    <th class="pt-0">Start time</th>
+                                    <th class="pt-0">End time</th>
+                                    <th class="pt-0">Interval(Min)</th>
                                     <th class="pt-0">Duration</th>
                                     <th class="pt-0">Status</th>
                                     <th class="pt-0">Action</th>
@@ -69,6 +72,9 @@
                                             <td>'.htmlspecialchars($item['text_preset_name']).'</td>
                                             <td>'.htmlspecialchars($item['graphic_preset_name']).'</td>
                                             <td>'.htmlspecialchars($item['group_name']).'</td>
+                                            <td>'.($item['start_time']).'</td>
+                                            <td>'.($item['end_time']).'</td>
+                                            <td>'.(int)($item['period']).'</td>
                                             <td>'.(int)($item['duration']).'</td>
                                             <td>'.$statusBtn.'</td>
                                             <td>'.$actionBtn.'</td>
@@ -171,7 +177,7 @@
                                 </div>
                             </div>
                             <div class="col-4 mb-3">
-                                <label for="period" class="form-label">Period:</label>
+                                <label for="period" class="form-label">Interval(min):</label>
                                 <input type="number" min="5" class="form-control" id="period" name="period" />
                                 <div class="form-check mt-3">
                                     <input class="form-check-input" type="checkbox" value="" id="period_check">

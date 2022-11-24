@@ -30,10 +30,13 @@
                                 <?php
                                     $count = 1;
                                     foreach ($users as $user) {                                        
-                                        print '<tr>
+                                        print '<tr sid="'.(int)$user->id.'">
                                             <td>'.$count++.'</td>
                                             <td>'.htmlspecialchars($user->name).'</td>
                                             <td>'.$user->username.'</td>
+                                            <td>
+                                                <button type="button" class="delete btn btn-danger btn-xs">Delete</button>
+                                            </td>
                                         </tr>';
                                     }
                                 ?>                                
@@ -88,6 +91,47 @@
 
 
             jQuery(function () {
+
+                $('.delete').on('click', function() {
+                    var sid = $(this).closest('tr').attr('sid');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#6571ff',
+                        cancelButtonColor: '#ff3366',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var data = new FormData();
+                            data.append('id', sid);
+                            $.ajax(
+                                {
+                                    url: '<?php echo URL;?>users/remove',
+                                    data: data,
+                                    cache: false,
+                                    contentType: false,
+                                    processData: false,
+                                    type: 'POST'
+                                })
+                                .done(function(result)
+                                {
+                                    if(result === 'success')
+                                    {
+                                        Swal.fire({
+                                            title: 'Deleted!',
+                                            text: 'User has been deleted.',
+                                            icon: 'success'
+                                        }).then(() => {
+                                            location.reload();
+                                        })
+                                    }
+                                });
+                        }
+                    })
+                });
 
                 $('#addUser').on('click', function() {
                                        

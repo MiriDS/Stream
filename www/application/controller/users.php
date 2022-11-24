@@ -25,4 +25,14 @@ class Users extends Controller
             }
         }
     }
+    public function remove()
+    {
+        if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
+        {
+            if(isset($_POST['id']) && is_numeric($_POST['id']) && (int)$_POST['id'] > 0)
+            {
+                $result = $this->model->removeUser((int)$_POST['id']);
+            }
+        }
+    }
 }
