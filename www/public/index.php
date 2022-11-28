@@ -7,6 +7,8 @@
  * @author MiriDS
  */
 
+date_default_timezone_set('Asia/Baku');
+
 // set a constant that holds the project's folder path, like "/var/www/".
 // DIRECTORY_SEPARATOR adds a slash to the end of the path
 define('ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
