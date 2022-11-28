@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y zlib1g-dev libpng-dev g++ git libicu-de
     && docker-php-ext-configure zip \
     && docker-php-ext-enable apcu
 
+ENV TZ=Asia/Baku
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /var/www
 
 COPY ../www /var/www/

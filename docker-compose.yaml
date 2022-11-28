@@ -12,6 +12,8 @@ services:
             - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
         depends_on:
             - php
+        environment:
+            TZ: "Asia/Baku"
 
     php:
         container_name: php
