@@ -43,8 +43,11 @@ class Scheduler extends Controller
                 $sid = (int)$_POST['sid'];
                 $status = (int)$_POST['status'];
                 $this->model->setScheduleStatus($sid, $status);
-                if(in_array($status,[1,2])) {
+                if(in_array($status,[2,3])) {
                     $this->model->stopInfiniteTask($sid);
+                }
+                if(in_array($status,[2])) {
+                    $this->model->setIsSent($sid, 0);
                 }
             }
         }
@@ -81,16 +84,6 @@ class Scheduler extends Controller
                 print json_encode(['status'=> 'ok', 'data' => $result],true);
             }
         }
-    }
-    public function start() {
-        $start_sec = microtime(true);
-
-        $this->model->startSchduleTasks();
-
-        $sonn = (microtime(true)-$start_sec);
-        $logg = fopen(__DIR__."/cron_log.txt","a+");
-        fwrite($logg,"\t-\t$sonn\t-\t".date("d-m-Y H:i:s")."   ------------- \n");
-        fclose($logg);
     }
 }
 

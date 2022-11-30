@@ -22,7 +22,7 @@ class Text_presets extends Controller
                 && isset($_POST['text']) && is_string($_POST['text'])
             )
             {
-                $result = $this->model->addTextPreset();
+                $this->model->addTextPreset();
             }
         }
     }
@@ -49,7 +49,7 @@ class Text_presets extends Controller
                 if(count($result)) {
                     $result = $result[0];
                     $result['name'] = htmlspecialchars($result['name']);
-                    $result['text'] = htmlspecialchars($result['text']);
+                    $result['text'] = ($result['text']);
                 }
 
                 print json_encode(['status'=> 'ok', 'data' => $result],true);

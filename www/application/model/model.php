@@ -647,8 +647,8 @@ WHERE tb1.is_deleted=0 $filter");
         LEFT JOIN channels tb5 ON tb5.id=tb4.channel_id AND tb5.is_deleted=0
 		
         WHERE 
-        tb1.is_deleted=0 AND (tb1.status=1 AND (tb1.end_time IS NULL OR tb1.end_time>'$actionTime'))
-        AND ((period=0 AND start_time='$actionTime') OR (period>0 AND TIMESTAMPDIFF(MINUTE,start_time,'$actionTime')%period=0))");
+        tb1.is_deleted=0 AND (tb1.status=1 AND (tb1.end_time IS NULL OR tb1.end_time>'$actionTime') AND start_time<='$actionTime')
+        AND ((period=0 AND sent=0) OR (period>0 AND TIMESTAMPDIFF(MINUTE,start_time,'$actionTime')%period=0))");
 
         $query->execute();
 
@@ -660,6 +660,9 @@ WHERE tb1.is_deleted=0 $filter");
 
             if(!in_array($task['id'],$uTaskId)) {
                 $this -> addSchedulerLog($task['id'], '6', 'Cron request');
+                if($task['period'] == 0) {
+                    $this->setIsSent($task['id'],1);
+                }
                 $uTaskId[] = $task['id'];
             }
             $channel_id_api = $task['channel_id_api'];
@@ -688,9 +691,16 @@ WHERE tb1.is_deleted=0 $filter");
 ';
             $request = Helper::graphqlRequest($serverIp, $graphQLquery);
             $this -> addSchedulerLog($task['id'], '7', 'start request '. $channel_id_api. ' -- '.$request);
+
         }
     }
 
+    public function setIsSent($tid, $val) {
+        $sql = "UPDATE `scheduler` SET sent = :val WHERE id=:id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':val' => $val, ':id' => $tid);
+        $query->execute($parameters);
+    }
     public function stopInfiniteTask($tid) {
 
         $query = $this->db->prepare("SELECT
