@@ -93,7 +93,6 @@
     <script>
         function resetModal() {
             document.getElementById("text_preset_modal").reset();
-
         }
         (function($) {
             'use strict';
