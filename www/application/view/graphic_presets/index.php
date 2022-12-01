@@ -148,8 +148,12 @@
                 'pause_between_passes': 'pause'
             }
             setTimeout(function (){
-                $('#cp1').colorpicker();
-                $('#cp2').colorpicker();
+                $('#cp1').colorpicker({
+                    format: 'rgba'
+                });
+                $('#cp2').colorpicker({
+                    format: 'rgba'
+                });
             },1000)
 
             $('.edit').on('click', function() {

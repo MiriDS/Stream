@@ -659,7 +659,7 @@ WHERE tb1.is_deleted=0 $filter");
         foreach ($taskList AS $task) {
 
             if(!in_array($task['id'],$uTaskId)) {
-                $this -> addSchedulerLog($task['id'], '6', 'Cron request');
+                $this->addSchedulerLog($task['id'], '6', 'Cron request');
                 if($task['period'] == 0) {
                     $this->setIsSent($task['id'],1);
                 }
@@ -667,8 +667,8 @@ WHERE tb1.is_deleted=0 $filter");
             }
             $channel_id_api = $task['channel_id_api'];
             $serverIp = $task['server_ip'];
-            $task['background_color'] = $task['background_color']."FC";
-            $task['font_color'] = $task['font_color']."FC";
+            $task['background_color'] = $this->rgba2hex($task['background_color']);
+            $task['font_color'] = $this->rgba2hex($task['font_color']);
 
             $graphQLquery = '[{
         "operationName": "startScrollingTextOverlay",
@@ -1280,5 +1280,27 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
         }
 
         return $return;
+    }
+
+    function rgba2hex($string) {
+        $rgba  = array();
+        $hex   = '';
+        $regex = '#\((([^()]+|(?R))*)\)#';
+        if (preg_match_all($regex, $string ,$matches)) {
+            $rgba = explode(',', implode(' ', $matches[1]));
+        } else {
+            $rgba = explode(',', $string);
+        }
+        
+        $rr = dechex($rgba['0']);
+        $gg = dechex($rgba['1']);
+        $bb = dechex($rgba['2']);
+        $aa = '';
+        
+        if (array_key_exists('3', $rgba)) {
+            $aa = dechex($rgba['3'] * 255);
+        }
+        
+        return strtoupper("#$aa$rr$gg$bb");
     }
 }

@@ -107,8 +107,8 @@
               `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
               `passes_count` int(11) NULL DEFAULT 0,
               `pause_between_passes` int(11) NULL DEFAULT NULL,
-              `font_color` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-              `background_color` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+              `font_color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+              `background_color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
               `bottom_margin` smallint(6) NULL DEFAULT NULL,
               `font_size` smallint(6) NULL DEFAULT NULL,
               `text_padding` smallint(6) NULL DEFAULT NULL,
@@ -118,24 +118,24 @@
               PRIMARY KEY (`id`) USING BTREE
             ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
-			-- ----------------------------
-			-- Table structure for scheduler
-			-- ----------------------------
-			DROP TABLE IF EXISTS `scheduler`;
-			CREATE TABLE `scheduler` (
-			`id` int(11) NOT NULL AUTO_INCREMENT,
-			`name` varchar(255) DEFAULT NULL,
-			`text_preset` int(11) DEFAULT NULL,
-			`graphic_preset` int(11) DEFAULT NULL,
-			`group` int(11) DEFAULT NULL,
-			`start_time` datetime DEFAULT NULL,
-			`end_time` datetime DEFAULT NULL,
-			`period` int(11) DEFAULT NULL,
-			`is_deleted` int(11) DEFAULT 0,
-			`status` int(11) DEFAULT 0,
-			`sent` tinyint(4) DEFAULT 0,
-			PRIMARY KEY (`id`) USING BTREE
-			) ENGINE = InnoDB AUTO_INCREMENT = 5 DEFAULT CHARSET = utf8mb4 ROW_FORMAT = Dynamic;
+            -- ----------------------------
+            -- Table structure for scheduler
+            -- ----------------------------
+            DROP TABLE IF EXISTS `scheduler`;
+            CREATE TABLE `scheduler` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) DEFAULT NULL,
+            `text_preset` int(11) DEFAULT NULL,
+            `graphic_preset` int(11) DEFAULT NULL,
+            `group` int(11) DEFAULT NULL,
+            `start_time` datetime DEFAULT NULL,
+            `end_time` datetime DEFAULT NULL,
+            `period` int(11) DEFAULT NULL,
+            `is_deleted` int(11) DEFAULT 0,
+            `status` int(11) DEFAULT 0,
+            `sent` tinyint(4) DEFAULT 0,
+            PRIMARY KEY (`id`) USING BTREE
+            ) ENGINE = InnoDB AUTO_INCREMENT = 5 DEFAULT CHARSET = utf8mb4 ROW_FORMAT = Dynamic;
             
             -- ----------------------------
             -- Table structure for scheduler_logs
