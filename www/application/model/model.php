@@ -667,6 +667,8 @@ WHERE tb1.is_deleted=0 $filter");
             }
             $channel_id_api = $task['channel_id_api'];
             $serverIp = $task['server_ip'];
+            $task['background_color'] = $task['background_color']."FC";
+            $task['font_color'] = $task['font_color']."FC";
 
             $graphQLquery = '[{
         "operationName": "startScrollingTextOverlay",
