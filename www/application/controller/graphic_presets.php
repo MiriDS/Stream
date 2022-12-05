@@ -18,7 +18,6 @@ class Graphic_presets extends Controller
     {
         if(isset($_SESSION['auth']) && $_SESSION['auth']==1)
         {
-
             if(
                 isset($_POST['name']) && is_string($_POST['name']) && trim($_POST['name']) !== ''
                 && isset($_POST['background_color']) && is_string($_POST['background_color'])

@@ -1292,15 +1292,22 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
             $rgba = explode(',', $string);
         }
         
-        $rr = dechex($rgba['0']);
-        $gg = dechex($rgba['1']);
-        $bb = dechex($rgba['2']);
+        $rr = dechex((int)$rgba['0']);
+        $gg = dechex((int)$rgba['1']);
+        $bb = dechex((int)$rgba['2']);
+
+        $rr = strlen($rr) === 1 ? '0'.$rr : $rr;
+        $gg = strlen($gg) === 1 ? '0'.$gg : $gg;
+        $bb = strlen($bb) === 1 ? '0'.$bb : $bb;
+
         $aa = '';
         
         if (array_key_exists('3', $rgba)) {
-            $aa = dechex($rgba['3'] * 255);
+            $aa = dechex((float)$rgba['3'] * 255);
+        } else {
+            $aa = 'FF';
         }
         
-        return strtoupper("#$aa$rr$gg$bb");
+        return strtoupper("#$rr$gg$bb$aa");
     }
 }
