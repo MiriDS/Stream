@@ -37,11 +37,6 @@ if (isset($_GET['url']) && $_GET['url'] === '/init') {
     exit;
 }
 
-if (isset($_GET['url']) && $_GET['url'] === '/update') {
-    require ROOT . 'public/update.php';
-    exit;
-}
-
 // load application class
 require APP . 'core/application.php';
 require APP . 'core/controller.php';
