@@ -59,10 +59,16 @@
 			<div class="sidebar-body">
 				<ul class="nav">
 				<li class="nav-item nav-category">Categories</li>
-				<li class="nav-item">
+				<!-- <li class="nav-item">
 					<a href="<?php echo URL; ?>" class="nav-link">
 						<i class="link-icon" data-feather="box"></i>
 						<span class="link-title">Dashboard</span>
+					</a>
+				</li> -->
+				<li class="nav-item" main="1">
+					<a href="<?php echo URL; ?>" class="nav-link">
+						<i class="link-icon" data-feather="list"></i>
+						<span class="link-title">Scheduler</span>
 					</a>
 				</li>
 				<li class="nav-item">
@@ -88,13 +94,7 @@
 						<i class="link-icon" data-feather="grid"></i>
 						<span class="link-title">Channel groups</span>
 					</a>
-				</li>
-				<li class="nav-item">
-					<a href="<?php echo URL; ?>scheduler" class="nav-link">
-						<i class="link-icon" data-feather="list"></i>
-						<span class="link-title">Scheduler</span>
-					</a>
-				</li>
+				</li>				
 				<li class="nav-item">
 					<a href="<?php echo URL; ?>history" class="nav-link">
 						<i class="link-icon" data-feather="calendar"></i>

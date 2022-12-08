@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Class Home
- *
- */
 class Scheduler extends Controller
 {
     public function index()
