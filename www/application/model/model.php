@@ -191,9 +191,11 @@ class Model
             return;
         }
 
-        $sql = "INSERT INTO `admins` (username, password, name) VALUES (:username, :password, :name)";
+        $salt = $this->generateRandomString();
+
+        $sql = "INSERT INTO `admins` (username, password, name, salt) VALUES (:username, :password, :name, :salt)";
         $query = $this->db->prepare($sql);
-        $params = array(':username' => $username, ':name' => $this->sanitize($name), ':password' => $this->convertPassword($password));
+        $params = array(':username' => $username, ':name' => $this->sanitize($name), ':password' => $this->convertPassword($password, $salt), ':salt' => $salt);
         $query->execute($params);
 
         if ($query) {
@@ -936,9 +938,8 @@ tb1.is_deleted=0 AND tb1.id='$tid' AND tb1.period=0");
     /**
     * For cleaning everything
     */
-    public function convertPassword($password)
+    public function convertPassword($password, $salt)
     {
-        $salt = $this->generateRandomString();
         return md5($password . md5($salt));
     }
 
