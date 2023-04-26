@@ -142,9 +142,10 @@ class Model
 
     public function setChannelList()
     {
-        $sql = "UPDATE `channels` SET is_deleted=1";
+        /*$sql = "UPDATE `channels` SET is_deleted=1";
         $query = $this->db->prepare($sql);
-        $query->execute();
+        $query->execute();*/
+        $newChannels = [];
         $graphQLquery = '{"query":"query {nodes (role: PROCESSING) {id  type  alias  role   state  disabled  }}"}';
         $sql = " SELECT * FROM `servers` WHERE is_deleted=0 ";
         $query = $this->db->prepare($sql);
@@ -155,13 +156,17 @@ class Model
             $status = 0;
 
             $data = Helper::graphqlRequest($serverIp, $graphQLquery);
+/*            var_dump($serverIp,$data);
+            exit;*/
 
             if($data) {
                 $data = (json_decode($data,true));
                 $nodes = ($data['data']['nodes']);
                 foreach ($nodes as $node) {
-                    $sql = "INSERT INTO `channels` (id_from_api, type, alias, state, disabled, server_ip) VALUES (:id_from_ip, :type, :alias, :state, :disabled, :server_ip)";
-                    $query = $this->db->prepare($sql);
+                    /*$sql = "INSERT INTO `channels` (id_from_api, type, alias, state, disabled, server_ip) VALUES (:id_from_ip, :type, :alias, :state, :disabled, :server_ip)";
+                    $query = $this->db->prepare($sql);*/
+
+                    $channelId = $this->sanitize($node['id']);
                     $params = array(
                         ':id_from_ip' => $this->sanitize($node['id'])
                         ,':type' => $this->sanitize($node['type'])
@@ -170,10 +175,47 @@ class Model
                         ,':disabled' => (int)($node['disabled'])
                         ,':server_ip' => $this->sanitize($serverIp)
                     );
-                    $query->execute($params);
+
+                    $newChannels[$channelId] = $params;
+
+                    //$query->execute($params);
                 }
             }
         }
+
+        $sql = " SELECT * FROM `channels` WHERE is_deleted=0 ";
+        $query = $this->db->prepare($sql);
+        $query->execute();
+        $curChannels = $query->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($curChannels AS $keyy => $channel) {
+
+            $channelApiId = $channel["id_from_api"];
+            if(isset($newChannels[$channelApiId])) {
+                unset($newChannels[$channelApiId]);
+            }
+            else {
+                $channelId = (int)$channel['id'];
+                $sql = "UPDATE `channels` SET is_deleted=1 WHERE id=:id";
+                $query = $this->db->prepare($sql);
+                $query->execute([
+                    ':id' => $channelId
+                ]);
+
+                $check = $this->db->prepare("UPDATE `ch_groups_channels` SET is_deleted=1 WHERE channel_id=?");
+                $check->execute([$channelId]);
+            }
+        }
+
+
+        /*Adding new channels*/
+
+        foreach ($newChannels as $key => $newChannel) {
+            $sql = "INSERT INTO `channels` (id_from_api, type, alias, state, disabled, server_ip) VALUES (:id_from_ip, :type, :alias, :state, :disabled, :server_ip)";
+            $query = $this->db->prepare($sql);
+            $query->execute($newChannel);
+        }
+
+
 
         return $servers;
     }
