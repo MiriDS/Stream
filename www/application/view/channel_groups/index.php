@@ -101,7 +101,7 @@
                         $('#addChannelGroupModal .channel-list').empty();
                         var data = res['data'];
                         for(var n in data) {
-                            $('#addChannelGroupModal .channel-list').append('<li class="list-group-item" ch_id="'+data[n]['id']+'"><div class="form-check"><input type="checkbox" class="form-check-input" id="check'+(ch_group_id + n)+'" '+(ch_group_id > 0 && data[n]['ch_group_id'] == ch_group_id ? "checked": "")+'><label class="form-check-label" for="check'+(ch_group_id + n)+'">'+data[n]['alias']+'</label></div></li>');
+                            $('#addChannelGroupModal .channel-list').append('<li class="list-group-item" ch_id="'+data[n]['id']+'"><div class="form-check"><input type="checkbox" class="form-check-input" id="check'+(ch_group_id + n)+'" '+(ch_group_id > 0 && parseInt(data[n]['in_this_group']) == 1 ? "checked": "")+'><label class="form-check-label" for="check'+(ch_group_id + n)+'">'+data[n]['alias']+'</label></div></li>');
                         }
                     }
                 }

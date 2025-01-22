@@ -132,9 +132,10 @@ class Model
 
     public function getFreeChannels($ch_group_id)
     {
-        $sql = " SELECT *,(SELECT ch_group_id FROM ch_groups_channels WHERE is_deleted=0 AND channel_id=tb1.id LIMIT 1 )ch_group_id FROM `channels` tb1 WHERE /*id NOT IN (SELECT channel_id FROM ch_groups_channels WHERE is_deleted=0 AND ch_group_id!=:ch_group_id) AND*/  is_deleted=0 ";
+        // $sql = " SELECT *,(SELECT ch_group_id FROM ch_groups_channels WHERE is_deleted=0 AND channel_id=tb1.id LIMIT 1 )ch_group_id FROM `channels` tb1 WHERE /*id NOT IN (SELECT channel_id FROM ch_groups_channels WHERE is_deleted=0 AND ch_group_id!=:ch_group_id) AND*/  is_deleted=0 "; This is old query 
+        $sql = "SELECT tb1.*, (SELECT GROUP_CONCAT(ch_group_id) FROM ch_groups_channels WHERE is_deleted = 0 AND channel_id = tb1.id) AS ch_group_ids, (SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM ch_groups_channels WHERE is_deleted = 0 AND channel_id = tb1.id AND ch_group_id = :filter_group_id) AS in_this_group FROM channels tb1 WHERE tb1.is_deleted = 0";
         $query = $this->db->prepare($sql);
-        $query->execute(['ch_group_id' => $ch_group_id]);
+        $query->execute(['filter_group_id' => $ch_group_id]);
         $channels = $query->fetchAll(PDO::FETCH_ASSOC);
 
         return $channels;
@@ -142,9 +143,6 @@ class Model
 
     public function setChannelList()
     {
-        /*$sql = "UPDATE `channels` SET is_deleted=1";
-        $query = $this->db->prepare($sql);
-        $query->execute();*/
         $newChannels = [];
         $graphQLquery = '{"query":"query {nodes (role: PROCESSING) {id  type  alias  role   state  disabled  }}"}';
         $sql = " SELECT * FROM `servers` WHERE is_deleted=0 ";
@@ -156,15 +154,11 @@ class Model
             $status = 0;
 
             $data = Helper::graphqlRequest($serverIp, $graphQLquery);
-/*            var_dump($serverIp,$data);
-            exit;*/
 
             if($data) {
                 $data = (json_decode($data,true));
                 $nodes = ($data['data']['nodes']);
                 foreach ($nodes as $node) {
-                    /*$sql = "INSERT INTO `channels` (id_from_api, type, alias, state, disabled, server_ip) VALUES (:id_from_ip, :type, :alias, :state, :disabled, :server_ip)";
-                    $query = $this->db->prepare($sql);*/
 
                     $channelId = $this->sanitize($node['id']);
                     $params = array(
@@ -177,8 +171,6 @@ class Model
                     );
 
                     $newChannels[$channelId] = $params;
-
-                    //$query->execute($params);
                 }
             }
         }
